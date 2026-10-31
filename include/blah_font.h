@@ -1,31 +1,28 @@
 #pragma once
+
 #include <blah_common.h>
-#include <blah_stream.h>
+#include <blah_filesystem.h>
 #include <blah_image.h>
+#include <blah_stream.h>
 #include <blah_string.h>
 #include <blah_vector.h>
-#include <blah_filesystem.h>
 
-namespace Blah
-{
+namespace Blah {
 	class Font;
 	using FontRef = Ref<Font>;
 
 	// Loads fonts from file and can blit individual characters to images.
 	// Use Font::create() to instantiate a FontRef.
-	class Font
-	{
-	private:
+	class Font {
+	  private:
 		Font() = default;
 
-	public:
-
+	  public:
 		// Font uses u32 Codepoints
 		using Codepoint = u32;
 
 		// Information provided for a single Character
-		struct Character
-		{
+		struct Character {
 			// character's glyph index
 			int glyph = 0;
 
@@ -52,16 +49,16 @@ namespace Blah
 		};
 
 		// creates a new font from the given file path
-		static FontRef create(const FilePath& path);
+		static FontRef create(const FilePath &path);
 
 		// creates a new font from the Stream
-		static FontRef create(Stream& stream);
+		static FontRef create(Stream &stream);
 
 		// returns the font family name
-		const String& family_name() const;
+		const String &family_name() const;
 
 		// returns the font style name
-		const String& style_name() const;
+		const String &style_name() const;
 
 		// the font ascent
 		int ascent() const;
@@ -92,20 +89,22 @@ namespace Blah
 
 		// Blits a character to the provided pixel array.
 		// The pixel array must be at least ch.width * ch.height in size!
-		// If the character doesn't exist, this will do nothing and return false.
-		bool get_image(const Character& ch, Color* pixels) const;
+		// If the character doesn't exist, this will do nothing and return
+		// false.
+		bool get_image(const Character &ch, Color *pixels) const;
 
 		// Returns an image of the provided character.
 		// If the character doesn't exist, this will return an empty image.
-		Image get_image(const Character& ch) const;
+		Image get_image(const Character &ch) const;
 
-	private:
-		Ref<void> m_font;
+	  private:
+		Ref<void>  m_font;
 		Vector<u8> m_buffer;
-		String m_family_name;
-		String m_style_name;
-		int m_ascent = 0;
-		int m_descent = 0;
-		int m_line_gap = 0;
+		String	   m_family_name;
+		String	   m_style_name;
+		int		   m_ascent	  = 0;
+		int		   m_descent  = 0;
+		int		   m_line_gap = 0;
 	};
-}
+} // namespace Blah
+

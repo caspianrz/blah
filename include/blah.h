@@ -1,4 +1,5 @@
 #pragma once
+
 #include "blah_app.h"
 #include "blah_aseprite.h"
 #include "blah_audio.h"
@@ -16,8 +17,8 @@
 #include "blah_spatial.h"
 #include "blah_spritefont.h"
 #include "blah_stackvector.h"
-#include "blah_string.h"
 #include "blah_stream.h"
+#include "blah_string.h"
 #include "blah_subtexture.h"
 #include "blah_time.h"
 #include "blah_vector.h"

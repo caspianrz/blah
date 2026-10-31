@@ -1,32 +1,35 @@
 #pragma once
+
 #include <blah_common.h>
-#include <blah_vector.h>
+#include <blah_image.h>
+#include <blah_spatial.h>
 #include <blah_stackvector.h>
 #include <blah_string.h>
-#include <blah_spatial.h>
-#include <blah_image.h>
+#include <blah_vector.h>
 
-namespace Blah
-{
+namespace Blah {
 	class Stream;
 
-	class Shader;   using ShaderRef   = Ref<Shader>;
-	class Texture;  using TextureRef  = Ref<Texture>;
-	class Target;   using TargetRef   = Ref<Target>;
-	class Mesh;     using MeshRef     = Ref<Mesh>;
-	class Material; using MaterialRef = Ref<Material>;
+	class Shader;
+	using ShaderRef = Ref<Shader>;
+	class Texture;
+	using TextureRef = Ref<Texture>;
+	class Target;
+	using TargetRef = Ref<Target>;
+	class Mesh;
+	using MeshRef = Ref<Mesh>;
+	class Material;
+	using MaterialRef = Ref<Material>;
 
 	// Type of Renderer the Application is using
-	enum class RendererType
-	{
+	enum class RendererType {
 		None = -1,
 		OpenGL,
 		D3D11,
 	};
 
 	// Renderer Information
-	struct RendererInfo
-	{
+	struct RendererInfo {
 		// The type of Renderer being used
 		RendererType type = RendererType::None;
 
@@ -42,8 +45,7 @@ namespace Blah
 	};
 
 	// Depth comparison function to use during a draw call
-	enum class Compare
-	{
+	enum class Compare {
 		None,
 		Always,
 		Never,
@@ -56,8 +58,7 @@ namespace Blah
 	};
 
 	// Cull mode during a draw call
-	enum class Cull
-	{
+	enum class Cull {
 		// No Culling enabled
 		None = 0,
 
@@ -68,17 +69,9 @@ namespace Blah
 		Back = 2,
 	};
 
-	enum class BlendOp
-	{
-		Add,
-		Subtract,
-		ReverseSubtract,
-		Min,
-		Max
-	};
+	enum class BlendOp { Add, Subtract, ReverseSubtract, Min, Max };
 
-	enum class BlendFactor
-	{
+	enum class BlendFactor {
 		Zero,
 		One,
 		SrcColor,
@@ -100,84 +93,80 @@ namespace Blah
 		OneMinusSrc1Alpha
 	};
 
-	enum class BlendMask
-	{
-		None = 0,
-		Red = 1,
+	enum class BlendMask {
+		None  = 0,
+		Red	  = 1,
 		Green = 2,
-		Blue = 4,
+		Blue  = 4,
 		Alpha = 8,
-		RGB = Red | Green | Blue,
-		RGBA = Red | Green | Blue | Alpha,
+		RGB	  = Red | Green | Blue,
+		RGBA  = Red | Green | Blue | Alpha,
 	};
 
 	// BlendMode using for rendering
-	struct BlendMode
-	{
+	struct BlendMode {
 		// Normal is Premultipled Alpha
-		// TODO: potentially rename normal to match that it is for Premultiplied Alpha?
+		// TODO: potentially rename normal to match that it is for Premultiplied
+		// Alpha?
 		static const BlendMode Normal;
 		static const BlendMode NonPremultiplied;
 		static const BlendMode Subtract;
 		static const BlendMode Additive;
 
-		BlendOp color_op;
+		BlendOp		color_op;
 		BlendFactor color_src;
 		BlendFactor color_dst;
-		BlendOp alpha_op;
+		BlendOp		alpha_op;
 		BlendFactor alpha_src;
 		BlendFactor alpha_dst;
-		BlendMask mask;
-		u32 rgba;
+		BlendMask	mask;
+		u32			rgba;
 
 		BlendMode() = default;
 
 		BlendMode(BlendOp op, BlendFactor src, BlendFactor dst) :
-			color_op(op), color_src(src), color_dst(dst),
-			alpha_op(op), alpha_src(src), alpha_dst(dst),
-			mask(BlendMask::RGBA), rgba(0xffffffff) {}
-
-		BlendMode(
-			BlendOp color_op, BlendFactor color_src, BlendFactor color_dst,
-			BlendOp alpha_op, BlendFactor alpha_src, BlendFactor alpha_dst,
-			BlendMask blend_mask, u32 blend_rgba) :
-			color_op(color_op), color_src(color_src), color_dst(color_dst),
-			alpha_op(alpha_op), alpha_src(alpha_src), alpha_dst(alpha_dst),
-			mask(blend_mask), rgba(blend_rgba) {}
-
-		constexpr bool operator==(const BlendMode& rhs) const
-		{
-			return
-				color_op == rhs.color_op && color_src == rhs.color_src && color_dst == rhs.color_dst &&
-				alpha_op == rhs.alpha_op && alpha_src == rhs.alpha_src && alpha_dst == rhs.alpha_dst &&
-				mask == rhs.mask && rgba == rhs.rgba;
+			color_op(op), color_src(src), color_dst(dst), alpha_op(op),
+			alpha_src(src), alpha_dst(dst), mask(BlendMask::RGBA),
+			rgba(0xffffffff) {
 		}
 
-		constexpr bool operator!=(const BlendMode& rhs) const
-		{
+		BlendMode(BlendOp color_op, BlendFactor color_src,
+				  BlendFactor color_dst, BlendOp alpha_op,
+				  BlendFactor alpha_src, BlendFactor alpha_dst,
+				  BlendMask blend_mask, u32 blend_rgba) :
+			color_op(color_op), color_src(color_src), color_dst(color_dst),
+			alpha_op(alpha_op), alpha_src(alpha_src), alpha_dst(alpha_dst),
+			mask(blend_mask), rgba(blend_rgba) {
+		}
+
+		constexpr bool operator==(const BlendMode &rhs) const {
+			return color_op == rhs.color_op && color_src == rhs.color_src &&
+				   color_dst == rhs.color_dst && alpha_op == rhs.alpha_op &&
+				   alpha_src == rhs.alpha_src && alpha_dst == rhs.alpha_dst &&
+				   mask == rhs.mask && rgba == rhs.rgba;
+		}
+
+		constexpr bool operator!=(const BlendMode &rhs) const {
 			return !(*this == rhs);
 		}
 	};
 
 	// Texture filter
-	enum class TextureFilter
-	{
-		None,   // Will fallback to whatever default the driver sets
+	enum class TextureFilter {
+		None,	// Will fallback to whatever default the driver sets
 		Linear, // Linear interpolation
 		Nearest // Nearest Neighbour interpolation
 	};
 
 	// Texture Wrap Mode
-	enum class TextureWrap
-	{
+	enum class TextureWrap {
 		None,  // Will fallback to whatever default the driver sets
 		Clamp, // Clamps the texture to the edges
 		Repeat // Repeats the texture
 	};
 
 	// Texture Sampler State, applied during rendering
-	struct TextureSampler
-	{
+	struct TextureSampler {
 		// Filter Mode
 		TextureFilter filter;
 
@@ -188,47 +177,49 @@ namespace Blah
 		TextureWrap wrap_y;
 
 		TextureSampler() :
-			filter(TextureFilter::Linear), wrap_x(TextureWrap::Repeat), wrap_y(TextureWrap::Repeat) {}
-
-		TextureSampler(TextureFilter filter) :
-			filter(filter), wrap_x(TextureWrap::Repeat), wrap_y(TextureWrap::Repeat) {}
-
-		TextureSampler(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y) :
-			filter(filter), wrap_x(wrap_x), wrap_y(wrap_y) {}
-
-		bool operator==(const TextureSampler& rhs) const
-		{
-			return filter == rhs.filter && wrap_x == rhs.wrap_x && wrap_y == rhs.wrap_y;
+			filter(TextureFilter::Linear), wrap_x(TextureWrap::Repeat),
+			wrap_y(TextureWrap::Repeat) {
 		}
 
-		bool operator!=(const TextureSampler& rhs) const
-		{
+		TextureSampler(TextureFilter filter) :
+			filter(filter), wrap_x(TextureWrap::Repeat),
+			wrap_y(TextureWrap::Repeat) {
+		}
+
+		TextureSampler(TextureFilter filter, TextureWrap wrap_x,
+					   TextureWrap wrap_y) :
+			filter(filter), wrap_x(wrap_x), wrap_y(wrap_y) {
+		}
+
+		bool operator==(const TextureSampler &rhs) const {
+			return filter == rhs.filter && wrap_x == rhs.wrap_x &&
+				   wrap_y == rhs.wrap_y;
+		}
+
+		bool operator!=(const TextureSampler &rhs) const {
 			return !(*this == rhs);
 		}
 	};
 
-	enum class TextureFormat
-	{
-		None,         // Invalid Format
-		R,            // Single 8-bit channel
-		RG,           // 2 8-bit channels
-		RGBA,         // 4 8-bit channels
+	enum class TextureFormat {
+		None,		  // Invalid Format
+		R,			  // Single 8-bit channel
+		RG,			  // 2 8-bit channels
+		RGBA,		  // 4 8-bit channels
 		DepthStencil, // Depth 24, Stencil 8
-		Count         // Total Formats
+		Count		  // Total Formats
 	};
 
-	enum class ClearMask
-	{
-		None = 0,
-		Color = 1,
-		Depth = 2,
+	enum class ClearMask {
+		None	= 0,
+		Color	= 1,
+		Depth	= 2,
 		Stencil = 4,
-		All = (int)Color | (int)Depth | (int)Stencil
+		All		= (int) Color | (int) Depth | (int) Stencil
 	};
 
 	// Supported Uniform Types
-	enum class UniformType
-	{
+	enum class UniformType {
 		None,
 		Float,
 		Float2,
@@ -241,16 +232,10 @@ namespace Blah
 	};
 
 	// Supported Shader Types
-	enum class ShaderType
-	{
-		None = 0,
-		Vertex = 1 << 0,
-		Fragment = 1 << 1
-	};
+	enum class ShaderType { None = 0, Vertex = 1 << 0, Fragment = 1 << 1 };
 
 	// Uniform Info, provided by the Shader
-	struct UniformInfo
-	{
+	struct UniformInfo {
 		// Name of the Uniform
 		String name;
 
@@ -272,8 +257,7 @@ namespace Blah
 	};
 
 	// Supported Vertex value types
-	enum class VertexType
-	{
+	enum class VertexType {
 		None,
 		Float,
 		Float2,
@@ -288,8 +272,7 @@ namespace Blah
 	};
 
 	// Vertex Attribute information
-	struct VertexAttribute
-	{
+	struct VertexAttribute {
 		// Location / Attribute Index
 		int index = 0;
 
@@ -302,8 +285,7 @@ namespace Blah
 
 	// Vertex Format information.
 	// Holds a list of attributes and total stride per-vertex.
-	struct VertexFormat
-	{
+	struct VertexFormat {
 		// List of Attributes
 		StackVector<VertexAttribute, 16> attributes;
 
@@ -311,12 +293,12 @@ namespace Blah
 		int stride = 0;
 
 		VertexFormat() = default;
-		VertexFormat(const StackVector<VertexAttribute, 16>& attributes, int stride = 0);
+		VertexFormat(const StackVector<VertexAttribute, 16> &attributes,
+					 int									 stride = 0);
 	};
 
 	// Supported Vertex Index formats
-	enum class IndexFormat
-	{
+	enum class IndexFormat {
 		// Indices are 16-bit unsigned integers
 		UInt16,
 
@@ -325,12 +307,10 @@ namespace Blah
 	};
 
 	// Data to be passed to the shader to construct it
-	struct ShaderData
-	{
-		struct HLSL_Attribute
-		{
+	struct ShaderData {
+		struct HLSL_Attribute {
 			// Semantic Name
-			const char* semantic_name = nullptr;
+			const char *semantic_name = nullptr;
 
 			// (optional) Semantic Index
 			int semantic_index = 0;
@@ -347,64 +327,63 @@ namespace Blah
 	};
 
 	// A shader used during Rendering
-	class Shader
-	{
-	protected:
+	class Shader {
+	  protected:
 		Shader() = default;
 
-	public:
+	  public:
 		// Copy / Moves not allowed
-		Shader(const Shader&) = delete;
-		Shader(Shader&&) = delete;
-		Shader& operator=(const Shader&) = delete;
-		Shader& operator=(Shader&&) = delete;
+		Shader(const Shader &)			  = delete;
+		Shader(Shader &&)				  = delete;
+		Shader &operator=(const Shader &) = delete;
+		Shader &operator=(Shader &&)	  = delete;
 
 		// Default Destructor
 		virtual ~Shader() = default;
 
 		// Creates a Shader with the given Shader Data.
 		// If the Shader creation fails, it will return an invalid ShaderRef.
-		static ShaderRef create(const ShaderData& data);
+		static ShaderRef create(const ShaderData &data);
 
 		// Gets a list of Shader Uniforms from Shader
-		virtual Vector<UniformInfo>& uniforms() = 0;
+		virtual Vector<UniformInfo> &uniforms() = 0;
 
 		// Gets a list of Shader Uniforms from Shader
-		virtual const Vector<UniformInfo>& uniforms() const = 0;
+		virtual const Vector<UniformInfo> &uniforms() const = 0;
 	};
 
 	// A 2D Texture held by the GPU to be used during rendering
-	class Texture
-	{
-	protected:
+	class Texture {
+	  protected:
 		Texture() = default;
 
-	public:
+	  public:
 		// Copy / Moves not allowed
-		Texture(const Texture&) = delete;
-		Texture(Texture&&) = delete;
-		Texture& operator=(const Texture&) = delete;
-		Texture& operator=(Texture&&) = delete;
+		Texture(const Texture &)			= delete;
+		Texture(Texture &&)					= delete;
+		Texture &operator=(const Texture &) = delete;
+		Texture &operator=(Texture &&)		= delete;
 
 		// Default Destructor
 		virtual ~Texture() = default;
 
 		// Creates a new Texture.
 		// If the Texture creation fails, it will return an invalid TextureRef.
-		static TextureRef create(const Image& image);
+		static TextureRef create(const Image &image);
 
 		// Creates a new Texture.
 		// If image data is provided, it should be the full size of the texture.
 		// If the Texture creation fails, it will return an invalid TextureRef.
-		static TextureRef create(int width, int height, TextureFormat format, unsigned char* data = nullptr);
+		static TextureRef create(int width, int height, TextureFormat format,
+								 unsigned char *data = nullptr);
 
 		// Creates a new Texture from a Stream.
 		// If the Texture creation fails, it will return an invalid TextureRef.
-		static TextureRef create(Stream& stream);
+		static TextureRef create(Stream &stream);
 
 		// Creates a new Texture from a File.
 		// If the Texture creation fails, it will return an invalid TextureRef.
-		static TextureRef create(const FilePath& file);
+		static TextureRef create(const FilePath &file);
 
 		// gets the width of the texture
 		virtual int width() const = 0;
@@ -416,43 +395,44 @@ namespace Blah
 		virtual TextureFormat format() const = 0;
 
 		// Sets the data of the Texture.
-		// Note that the data should be the same format and size as the Texture. There is no row padding.
-		virtual void set_data(const u8* data) = 0;
+		// Note that the data should be the same format and size as the Texture.
+		// There is no row padding.
+		virtual void set_data(const u8 *data) = 0;
 
 		// Sets the data of the Texture to the provided Color buffer.
 		// If the Texture Format is not RGBA, this won't do anything.
-		void set_data(const Color* data);
+		void set_data(const Color *data);
 
 		// Gets the data of the Texture.
-		// Note that the data will be written to in the same format as the Texture,
-		// and you should allocate enough space for the full texture. There is no row padding.
-		virtual void get_data(u8* data) = 0;
+		// Note that the data will be written to in the same format as the
+		// Texture, and you should allocate enough space for the full texture.
+		// There is no row padding.
+		virtual void get_data(u8 *data) = 0;
 
 		// Gets the data of the Texture.
 		// If the Texture Format is not RGBA, this won't do anything.
-		void get_data(Color* data);
+		void get_data(Color *data);
 
 		// Returns true if the Texture is part of a FrameBuffer
 		virtual bool is_framebuffer() const = 0;
 	};
 
 	// Up to 4 color textures + 1 depth/stencil
-	using Attachments = StackVector<TextureRef, 5>;
+	using Attachments		= StackVector<TextureRef, 5>;
 	using AttachmentFormats = StackVector<TextureFormat, 5>;
 
 	// Target is a 2D Buffer that can be drawn to.
 	// It can hold up to 4 color Textures, and 1 Depth/Stencil Texture.
-	class Target
-	{
-	protected:
+	class Target {
+	  protected:
 		Target() = default;
 
-	public:
+	  public:
 		// Copy / Moves not allowed
-		Target(const Target&) = delete;
-		Target(Target&&) = delete;
-		Target& operator=(const Target&) = delete;
-		Target& operator=(Target&&) = delete;
+		Target(const Target &)			  = delete;
+		Target(Target &&)				  = delete;
+		Target &operator=(const Target &) = delete;
+		Target &operator=(Target &&)	  = delete;
 
 		// Default Destructor
 		virtual ~Target() = default;
@@ -461,21 +441,23 @@ namespace Blah
 		// If the Target creation fails, it will return an invalid TargetRef.
 		static TargetRef create(int width, int height);
 
-		// Creates a new Target with the given Texture Attachments. You must provide at least one Attachment.
-		// If the Target creation fails, it will return an invalid TargetRef.
-		static TargetRef create(int width, int height, const AttachmentFormats& textures);
+		// Creates a new Target with the given Texture Attachments. You must
+		// provide at least one Attachment. If the Target creation fails, it
+		// will return an invalid TargetRef.
+		static TargetRef create(int width, int height,
+								const AttachmentFormats &textures);
 
 		// Gets the list of Attachments from the Target
-		virtual Attachments& textures() = 0;
+		virtual Attachments &textures() = 0;
 
 		// Gets the list of Attachments from the Target
-		virtual const Attachments& textures() const = 0;
+		virtual const Attachments &textures() const = 0;
 
 		// Gets the Attachment at a given index from the Target
-		TextureRef& texture(int index);
+		TextureRef &texture(int index);
 
 		// Gets the Attachment at a given index from the Target
-		const TextureRef& texture(int index) const;
+		const TextureRef &texture(int index) const;
 
 		// Gets the width of the Target
 		virtual int width() const;
@@ -484,21 +466,21 @@ namespace Blah
 		virtual int height() const;
 
 		// Clears the Target
-		virtual void clear(Color color = Color::black, float depth = 1.0f, u8 stencil = 0, ClearMask mask = ClearMask::All) = 0;
+		virtual void clear(Color color = Color::black, float depth = 1.0f,
+						   u8 stencil = 0, ClearMask mask = ClearMask::All) = 0;
 	};
 
 	// A Mesh is a set of Indices and Vertices which are used for drawing
-	class Mesh
-	{
-	protected:
+	class Mesh {
+	  protected:
 		Mesh() = default;
 
-	public:
+	  public:
 		// Copy / Moves not allowed
-		Mesh(const Mesh&) = delete;
-		Mesh(Mesh&&) = delete;
-		Mesh& operator=(const Mesh&) = delete;
-		Mesh& operator=(Mesh&&) = delete;
+		Mesh(const Mesh &)			  = delete;
+		Mesh(Mesh &&)				  = delete;
+		Mesh &operator=(const Mesh &) = delete;
+		Mesh &operator=(Mesh &&)	  = delete;
 
 		// Default Destructor
 		virtual ~Mesh() = default;
@@ -508,13 +490,16 @@ namespace Blah
 		static MeshRef create();
 
 		// Uploads the given index buffer to the Mesh
-		virtual void index_data(IndexFormat format, const void* indices, i64 count) = 0;
+		virtual void index_data(IndexFormat format, const void *indices,
+								i64 count) = 0;
 
 		// Uploads the given vertex buffer to the Mesh
-		virtual void vertex_data(const VertexFormat& format, const void* vertices, i64 count) = 0;
+		virtual void vertex_data(const VertexFormat &format,
+								 const void *vertices, i64 count) = 0;
 
 		// Uploads the given instance buffer to the Mesh
-		virtual void instance_data(const VertexFormat& format, const void* instances, i64 count) = 0;
+		virtual void instance_data(const VertexFormat &format,
+								   const void *instances, i64 count) = 0;
 
 		// Gets the index count of the Mesh
 		virtual i64 index_count() const = 0;
@@ -527,24 +512,23 @@ namespace Blah
 	};
 
 	// Materials hold values that can be assigned to a shader during rendering
-	class Material final
-	{
-	private:
-		Material(const ShaderRef& shader);
+	class Material final {
+	  private:
+		Material(const ShaderRef &shader);
 
-	public:
+	  public:
 		// Copy / Moves not allowed
-		Material(const Material&) = delete;
-		Material(Material&&) = delete;
-		Material& operator=(const Material&) = delete;
-		Material& operator=(Material&&) = delete;
+		Material(const Material &)			  = delete;
+		Material(Material &&)				  = delete;
+		Material &operator=(const Material &) = delete;
+		Material &operator=(Material &&)	  = delete;
 
 		// Default destructor
 		~Material() = default;
 
 		// Creates a new Material from the given Shader.
 		// If the Shader is invalid, it will return an invalid MaterialRef.
-		static MaterialRef create(const ShaderRef& shader);
+		static MaterialRef create(const ShaderRef &shader);
 
 		// Clones the material and returns a new one
 		MaterialRef clone() const;
@@ -553,25 +537,27 @@ namespace Blah
 		ShaderRef shader() const;
 
 		// Sets the texture
-		void set_texture(const char* name, const TextureRef& texture, int array_index = 0);
+		void set_texture(const char *name, const TextureRef &texture,
+						 int array_index = 0);
 
 		// Sets the texture
-		void set_texture(int register_index, const TextureRef& texture);
+		void set_texture(int register_index, const TextureRef &texture);
 
 		// Gets the texture, or an empty reference if invalid
-		TextureRef get_texture(const char* name, int array_index = 0) const;
+		TextureRef get_texture(const char *name, int array_index = 0) const;
 
 		// Gets the texture, or an empty reference if invalid
 		TextureRef get_texture(int register_index) const;
 
 		// Sets the sampler
-		void set_sampler(const char* name, const TextureSampler& sampler, int array_index = 0);
+		void set_sampler(const char *name, const TextureSampler &sampler,
+						 int array_index = 0);
 
 		// Sets the sampler
-		void set_sampler(int register_index, const TextureSampler& sampler);
+		void set_sampler(int register_index, const TextureSampler &sampler);
 
 		// Gets the sampler
-		TextureSampler get_sampler(const char* name, int array_index = 0) const;
+		TextureSampler get_sampler(const char *name, int array_index = 0) const;
 
 		// Gets the sampler
 		TextureSampler get_sampler(int register_index) const;
@@ -579,47 +565,48 @@ namespace Blah
 		// Sets the value. `length` is the total number of floats to set
 		// For example if the uniform is a float2[4], a total of 8 float values
 		// can be set.
-		void set_value(const char* name, const float* value, i64 length);
+		void set_value(const char *name, const float *value, i64 length);
 
 		// Shorthands to more easily assign uniform values
-		void set_value(const char* name, float value);
-		void set_value(const char* name, const Vec2f& value);
-		void set_value(const char* name, const Vec3f& value);
-		void set_value(const char* name, const Vec4f& value);
-		void set_value(const char* name, const Mat3x2f& value);
-		void set_value(const char* name, const Mat4x4f& value);
-		void set_value(const char* name, const Vector<float>& value);
-		void set_value(const char* name, const Vector<Vec2f>& value);
-		void set_value(const char* name, const Vector<Vec3f>& value);
-		void set_value(const char* name, const Vector<Vec4f>& value);
-		void set_value(const char* name, const Vector<Mat3x2f>& value);
-		void set_value(const char* name, const Vector<Mat4x4f>& value);
+		void set_value(const char *name, float value);
+		void set_value(const char *name, const Vec2f &value);
+		void set_value(const char *name, const Vec3f &value);
+		void set_value(const char *name, const Vec4f &value);
+		void set_value(const char *name, const Mat3x2f &value);
+		void set_value(const char *name, const Mat4x4f &value);
+		void set_value(const char *name, const Vector<float> &value);
+		void set_value(const char *name, const Vector<Vec2f> &value);
+		void set_value(const char *name, const Vector<Vec3f> &value);
+		void set_value(const char *name, const Vector<Vec4f> &value);
+		void set_value(const char *name, const Vector<Mat3x2f> &value);
+		void set_value(const char *name, const Vector<Mat4x4f> &value);
 
-		// Gets a pointer to the values of the given Uniform, or nullptr if it doesn't exist.
-		const float* get_value(const char* name, i64* length = nullptr) const;
+		// Gets a pointer to the values of the given Uniform, or nullptr if it
+		// doesn't exist.
+		const float *get_value(const char *name, i64 *length = nullptr) const;
 
-		// Checks if the shader attached to the material has a uniform value with the given name
-		bool has_value(const char* name) const;
+		// Checks if the shader attached to the material has a uniform value
+		// with the given name
+		bool has_value(const char *name) const;
 
 		// Returns the internal Texture buffer
-		const Vector<TextureRef>& textures() const;
+		const Vector<TextureRef> &textures() const;
 
 		// Returns the internal Sampler buffer
-		const Vector<TextureSampler>& samplers() const;
+		const Vector<TextureSampler> &samplers() const;
 
 		// Returns the interal float buffer of all the values
-		const float* data() const;
+		const float *data() const;
 
-	private:
-		ShaderRef m_shader;
-		Vector<TextureRef> m_textures;
+	  private:
+		ShaderRef			   m_shader;
+		Vector<TextureRef>	   m_textures;
 		Vector<TextureSampler> m_samplers;
-		Vector<float> m_data;
+		Vector<float>		   m_data;
 	};
 
 	// A single draw call
-	struct DrawCall
-	{
+	struct DrawCall {
 		// Framebuffer to draw to
 		TargetRef target;
 
@@ -665,4 +652,5 @@ namespace Blah
 		// Performs the render
 		void perform();
 	};
-}
+} // namespace Blah
+

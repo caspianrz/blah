@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 4.0.0)
 project(blah)
 
 # C++ version
@@ -31,6 +31,8 @@ add_library(blah
 target_include_directories(blah
 	PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 	PRIVATE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
@@ -61,29 +63,30 @@ endif()
 # Emscripten can import SDL2 directly
 if (EMSCRIPTEN)
 	
-	set_target_properties(blah PROPERTIES COMPILE_FLAGS "-s USE_SDL=2")
-	target_link_libraries(blah "-s USE_SDL=2 -s USE_WEBGL2=1")
+	set_target_properties(blah PROPERTIES COMPILE_FLAGS "-s USE_SDL=3")
+	target_link_libraries(blah "-s USE_SDL=3 -s USE_WEBGL2=1")
 
-# Pull SDL2 from its Github repo
+# Pull SDL3 from its Github repo
 else()
-	if (NOT DEFINED BLAH_SDL2_LIBS)
+	if (NOT DEFINED BLAH_SDL3_LIBS)
 		include(FetchContent)
 		set(FETCHCONTENT_QUIET FALSE)
 
 		FetchContent_Declare(
-			SDL2
+			SDL3
 			GIT_REPOSITORY https://github.com/libsdl-org/SDL
-			GIT_TAG release-2.26.0 # grab latest stable release
+			GIT_TAG release-3.4.18
 			GIT_PROGRESS TRUE
 		)
-		FetchContent_MakeAvailable(SDL2)
-		set(BLAH_SDL2_LIBS SDL2main SDL2-static)
-		set(BLAH_SDL2_INCLUDE ${sdl2_SOURCE_DIRS}/include)
+		set(SDL_STATIC ON CACHE BOOL "" FORCE)
+		FetchContent_MakeAvailable(SDL3)
+		set(BLAH_SDL3_LIBS SDL3::SDL3)
+		set(BLAH_SDL3_INCLUDE ${sdl3_SOURCE_DIRS}/include)
 	endif()
 
-	# statically link SDL2 since we're building it ourselves
-	set(LIBS ${LIBS} ${BLAH_SDL2_LIBS})
-	target_include_directories(blah PRIVATE ${BLAH_SDL2_INCLUDE})
+	# statically link SDL3 since we're building it ourselves
+	set(LIBS ${LIBS} ${BLAH_SDL3_LIBS})
+	target_include_directories(blah PRIVATE ${BLAH_SDL3_INCLUDE})
 endif()
 
 target_link_libraries(blah PRIVATE ${LIBS})

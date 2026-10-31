@@ -1,42 +1,42 @@
 #pragma once
+
 #include <blah_common.h>
 #include <blah_graphics.h>
 #include <blah_spatial.h>
 
-namespace Blah
-{
+namespace Blah {
 	// Application Event Functions
 	using AppEventFn = Func<void>;
 
 	// Application Logging Functions
-	using AppLogFn = Func<void, const char*, Log::Category>;
+	using AppLogFn = Func<void, const char *, Log::Category>;
 
 	// Application flags
-	namespace Flags
-	{
+	namespace Flags {
 		constexpr u32 FixedTimestep = 1 << 0;
-		constexpr u32 VSync = 1 << 1;
-		constexpr u32 Fullscreen = 1 << 2;
-		constexpr u32 Resizable = 1 << 3;
-		constexpr u32 AudioEnabled = 1 << 4;
-	}
+		constexpr u32 VSync			= 1 << 1;
+		constexpr u32 Fullscreen	= 1 << 2;
+		constexpr u32 Resizable		= 1 << 3;
+		constexpr u32 AudioEnabled	= 1 << 4;
+	} // namespace Flags
 
 	// Application Configuration
-	struct Config
-	{
+	struct Config {
 		// Application name.
-		const char* name = "blah";
-		
+		const char *name = "blah";
+
 		// Which renderer to use
 		// Default depends on the Platform
 		RendererType renderer_type = RendererType::None;
 
 		// Starting width, in pixels.
-		// Depending on the OS DPI, the true window size may be a multiple of this.
+		// Depending on the OS DPI, the true window size may be a multiple of
+		// this.
 		int width = 1280;
 
 		// Starting height, in pixels.
-		// Depending on the OS DPI, the true window size may be a multiple of this.
+		// Depending on the OS DPI, the true window size may be a multiple of
+		// this.
 		int height = 720;
 
 		// maximum updates to run before "giving up" and reducing frame rate.
@@ -52,7 +52,8 @@ namespace Blah
 		int audio_frequency_in_Hz = 44100;
 
 		// default starting flags
-		u32 flags = Flags::VSync | Flags::Resizable | Flags::FixedTimestep | Flags::AudioEnabled;
+		u32 flags = Flags::VSync | Flags::Resizable | Flags::FixedTimestep |
+					Flags::AudioEnabled;
 
 		// Callback on application startup
 		AppEventFn on_startup = nullptr;
@@ -77,10 +78,9 @@ namespace Blah
 	};
 
 	// Application
-	namespace App
-	{
+	namespace App {
 		// Runs the application
-		bool run(const Config* config);
+		bool run(const Config *config);
 
 		// Checks if the Application is running yet
 		bool is_running();
@@ -91,19 +91,19 @@ namespace Blah
 		void exit();
 
 		// Gets the config data used to run the application
-		const Config& config();
+		const Config &config();
 
 		// Gets the working path
-		const char* path();
+		const char *path();
 
 		// Gets the user path
-		const char* user_path();
+		const char *user_path();
 
 		// Gets the Window Title
-		const char* get_title();
+		const char *get_title();
 
 		// Sets the Window Title
-		void set_title(const char* title);
+		void set_title(const char *title);
 
 		// Gets the Window Position in Screen Coordinates
 		Point get_position();
@@ -129,27 +129,34 @@ namespace Blah
 		bool get_flag(u32 flag);
 
 		// Toggles the fullscreen flag
-		inline void set_fullscreen(bool enabled) { set_flag(Flags::Fullscreen, enabled); }
+		inline void set_fullscreen(bool enabled) {
+			set_flag(Flags::Fullscreen, enabled);
+		}
 
 		// Toggles the V-Sync flag
-		inline void set_vsync(bool enabled) { set_flag(Flags::VSync, enabled); }
+		inline void set_vsync(bool enabled) {
+			set_flag(Flags::VSync, enabled);
+		}
 
 		// Toggles the resizable flag
-		inline void set_resizable(bool enabled) { set_flag(Flags::Resizable, enabled); }
+		inline void set_resizable(bool enabled) {
+			set_flag(Flags::Resizable, enabled);
+		}
 
 		// Toggles whether to update with Fixed Timestep
-		inline void set_fixedtimestep(bool enabled) { set_flag(Flags::FixedTimestep, enabled); }
+		inline void set_fixedtimestep(bool enabled) {
+			set_flag(Flags::FixedTimestep, enabled);
+		}
 
 		// Retrieves the Renderer Information
-		const RendererInfo& renderer();
+		const RendererInfo &renderer();
 
 		// Gets the BackBuffer
-		const TargetRef& backbuffer();
-	}
+		const TargetRef &backbuffer();
+	} // namespace App
 
-	namespace System
-	{
+	namespace System {
 		// Tries to open the given URL in a web browser
-		void open_url(const char* url);
-	}
-}
+		void open_url(const char *url);
+	} // namespace System
+} // namespace Blah

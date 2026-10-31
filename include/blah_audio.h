@@ -1,39 +1,38 @@
 #pragma once
 
 #include <blah_common.h>
-#include <blah_stream.h>
 #include <blah_filesystem.h>
+#include <blah_stream.h>
 
-namespace Blah
-{
+namespace Blah {
 	class Audio;
 	class Sound;
 	using AudioRef = Ref<Audio>;
 
-	class Audio
-	{
-	public:
-
+	class Audio {
+	  public:
 		// Load audio from a .wav file or .ogg file.
-		static AudioRef create(const FilePath& path);
+		static AudioRef create(const FilePath &path);
 
 		// Load audio from a .ogg Stream.
-		static AudioRef create_from_ogg(Stream& stream);
+		static AudioRef create_from_ogg(Stream &stream);
 
 		// Load audio from a .wav Stream.
-		static AudioRef create_from_wav(Stream& stream);
+		static AudioRef create_from_wav(Stream &stream);
 
 		~Audio();
-		inline void* get_backend_handle() { return m_ptr; }
+		inline void *get_backend_handle() {
+			return m_ptr;
+		}
 		u64 get_sample_count();
 
-	private:
-		Audio(void* audio);
-		void* m_ptr;
+	  private:
+		Audio(void *audio);
+		void *m_ptr;
 	};
 
-	// Set the global panning control for left/right stereo, from 0.0f (left) to 1.0f (right).
-	// 0.5f is the default for playing both speakers equal.
+	// Set the global panning control for left/right stereo, from 0.0f (left)
+	// to 1.0f (right). 0.5f is the default for playing both speakers equal.
 	void set_global_pan(float pan);
 
 	// Set the global volume control for all audio, sounds + music included.
@@ -48,8 +47,7 @@ namespace Blah
 	// Set the volume control for *just music*, not sounds.
 	void set_music_volume(float volume);
 
-	namespace Music
-	{
+	namespace Music {
 		// Play audio track using the music controls.
 		// Can optionally fade the volume in over a number of seconds.
 		void play(AudioRef audio, float fade_in_time = 0);
@@ -73,9 +71,11 @@ namespace Blah
 		// Switches to another audio track.
 		// Can optionally fade out over a number of seconds.
 		// Then can optinoally fade in the next track over a number of seconds.
-		void switch_to(AudioRef audio, float fade_out_time = 0, float fade_in_time = 0);
+		void switch_to(AudioRef audio, float fade_out_time = 0,
+					   float fade_in_time = 0);
 
-		// Crossfades from the current music to another track over a number of seconds.
+		// Crossfades from the current music to another track over a number of
+		// seconds.
 		void crossfade(AudioRef audio, float cross_fade_time = 0);
 
 		// Get the index of the music sample currently playing.
@@ -84,25 +84,22 @@ namespace Blah
 		// Set the index for next sample of music to play.
 		// You can use this to manually sync to a specific part in the audio.
 		void set_sample_index(u64 sample_index);
-	}
+	} // namespace Music
 
-	struct SoundParams
-	{
-		bool paused = false;
-		bool looped = false;
+	struct SoundParams {
+		bool  paused = false;
+		bool  looped = false;
 		float volume = 1.0f;
-		float pan = 0.5f; // 0 means left, 1 means right, 0.5f means balanced.
-		float delay = 0; // A number of seconds before playing the sound.
+		float pan	= 0.5f; // 0 means left, 1 means right, 0.5f means balanced.
+		float delay = 0;	// A number of seconds before playing the sound.
 	};
 
-	class Sound
-	{
-	public:
-
+	class Sound {
+	  public:
 		// Play a sound, returns a new `Sound` instance.
-		// Returns a sound instance. The instance will destroy itself internally when
-		// it finishes playing, unless `looped` is set to true.
-		// Once destroyed other functions like `set_volume` will be ignored.
+		// Returns a sound instance. The instance will destroy itself internally
+		// when it finishes playing, unless `looped` is set to true. Once
+		// destroyed other functions like `set_volume` will be ignored.
 		static Sound play(AudioRef audio, SoundParams params = SoundParams());
 
 		// Tells whether or not this sound instance is still alive.
@@ -133,7 +130,11 @@ namespace Blah
 		// You can use this to manually sync to a specific part in the audio.
 		void set_sample_index(u64 sample_index);
 
+		// TODO: add docuemnt for these two new methods.
+		double get_time();
+		void   set_time(double time_in_seconds);
+
 		u64 id = 0;
 	};
 
-}
+} // namespace Blah

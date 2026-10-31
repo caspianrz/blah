@@ -1,4 +1,5 @@
 #pragma once
+
 #include <blah_color.h>
 #include <blah_spatial.h>
 #include <blah_filesystem.h>

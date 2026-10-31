@@ -1,12 +1,11 @@
 #ifdef BLAH_RENDERER_OPENGL
 
-#include "blah_renderer.h"
 #include "blah_internal.h"
 #include "blah_platform.h"
+#include "blah_renderer.h"
 #include <blah_common.h>
-#include <stdio.h>
-#include <string.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -16,24 +15,24 @@
 #endif
 
 // OpenGL Value Types
-typedef ptrdiff_t        GLintptr;
-typedef ptrdiff_t        GLsizeiptr;
-typedef unsigned int     GLenum;
-typedef unsigned char    GLboolean;
-typedef unsigned int     GLbitfield;
-typedef void             GLvoid;
-typedef signed char      GLbyte;      /* 1-byte signed */
-typedef short            GLshort;     /* 2-byte signed */
-typedef int              GLint;       /* 4-byte signed */
-typedef unsigned char    GLubyte;     /* 1-byte unsigned */
-typedef unsigned short   GLushort;    /* 2-byte unsigned */
-typedef unsigned int     GLuint;      /* 4-byte unsigned */
-typedef int              GLsizei;     /* 4-byte signed */
-typedef float            GLfloat;     /* single precision float */
-typedef float            GLclampf;    /* single precision float in [0,1] */
-typedef double           GLdouble;    /* double precision float */
-typedef double           GLclampd;    /* double precision float in [0,1] */
-typedef char             GLchar;
+typedef ptrdiff_t	   GLintptr;
+typedef ptrdiff_t	   GLsizeiptr;
+typedef unsigned int   GLenum;
+typedef unsigned char  GLboolean;
+typedef unsigned int   GLbitfield;
+typedef void		   GLvoid;
+typedef signed char	   GLbyte;	 /* 1-byte signed */
+typedef short		   GLshort;	 /* 2-byte signed */
+typedef int			   GLint;	 /* 4-byte signed */
+typedef unsigned char  GLubyte;	 /* 1-byte unsigned */
+typedef unsigned short GLushort; /* 2-byte unsigned */
+typedef unsigned int   GLuint;	 /* 4-byte unsigned */
+typedef int			   GLsizei;	 /* 4-byte signed */
+typedef float		   GLfloat;	 /* single precision float */
+typedef float		   GLclampf; /* single precision float in [0,1] */
+typedef double		   GLdouble; /* double precision float */
+typedef double		   GLclampd; /* double precision float in [0,1] */
+typedef char		   GLchar;
 
 // OpenGL Constants
 #define GL_DONT_CARE 0x1100
@@ -225,127 +224,166 @@ typedef char             GLchar;
 #define GL_DEBUG_OUTPUT_SYNCHRONOUS 0x8242
 
 // OpenGL Functions
-#define GL_FUNCTIONS \
-	GL_FUNC(DebugMessageCallback, void, DEBUGPROC callback, const void* userParam) \
-	GL_FUNC(GetString, const GLubyte*, GLenum name) \
-	GL_FUNC(Flush, void, void) \
-	GL_FUNC(Enable, void, GLenum mode) \
-	GL_FUNC(Disable, void, GLenum mode) \
-	GL_FUNC(Clear, void, GLenum mask) \
-	GL_FUNC(ClearColor, void, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) \
-	GL_FUNC(ClearDepth, void, GLdouble depth) \
-	GL_FUNC(ClearStencil, void, GLint stencil) \
-	GL_FUNC(DepthMask, void, GLboolean enabled) \
-	GL_FUNC(DepthFunc, void, GLenum func) \
-	GL_FUNC(Viewport, void, GLint x, GLint y, GLint width, GLint height) \
-	GL_FUNC(Scissor, void, GLint x, GLint y, GLint width, GLint height) \
-	GL_FUNC(CullFace, void, GLenum mode) \
-	GL_FUNC(BlendEquation, void, GLenum eq) \
-	GL_FUNC(BlendEquationSeparate, void, GLenum modeRGB, GLenum modeAlpha) \
-	GL_FUNC(BlendFunc, void, GLenum sfactor, GLenum dfactor) \
-	GL_FUNC(BlendFuncSeparate, void, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha) \
-	GL_FUNC(BlendColor, void, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) \
-	GL_FUNC(ColorMask, void, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) \
-	GL_FUNC(GetIntegerv, void, GLenum name, GLint* data) \
-	GL_FUNC(GenTextures, void, GLint n, void* textures) \
-	GL_FUNC(GenRenderbuffers, void, GLint n, void* textures) \
-	GL_FUNC(GenFramebuffers, void, GLint n, void* textures) \
-	GL_FUNC(ActiveTexture, void, GLuint id) \
-	GL_FUNC(BindTexture, void, GLenum target, GLuint id) \
-	GL_FUNC(BindRenderbuffer, void, GLenum target, GLuint id) \
-	GL_FUNC(BindFramebuffer, void, GLenum target, GLuint id) \
-	GL_FUNC(TexImage2D, void, GLenum target, GLint level, GLenum internalFormat, GLint width, GLint height, GLint border, GLenum format, GLenum type, const void* data) \
-	GL_FUNC(FramebufferRenderbuffer, void, GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) \
-	GL_FUNC(FramebufferTexture2D, void, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) \
-	GL_FUNC(TexParameteri, void, GLenum target, GLenum name, GLint param) \
-	GL_FUNC(RenderbufferStorage, void, GLenum target, GLenum internalformat, GLint width, GLint height) \
-	GL_FUNC(GetTexImage, void, GLenum target, GLint level, GLenum format, GLenum type, void* data) \
-	GL_FUNC(DrawElements, void, GLenum mode, GLint count, GLenum type, void* indices) \
-	GL_FUNC(DrawElementsInstanced, void, GLenum mode, GLint count, GLenum type, void* indices, GLint amount) \
-	GL_FUNC(DeleteTextures, void, GLint n, GLuint* textures) \
-	GL_FUNC(DeleteRenderbuffers, void, GLint n, GLuint* renderbuffers) \
-	GL_FUNC(DeleteFramebuffers, void, GLint n, GLuint* textures) \
-	GL_FUNC(GenVertexArrays, void, GLint n, GLuint* arrays) \
-	GL_FUNC(BindVertexArray, void, GLuint id) \
-	GL_FUNC(GenBuffers, void, GLint n, GLuint* arrays) \
-	GL_FUNC(BindBuffer, void, GLenum target, GLuint buffer) \
-	GL_FUNC(BufferData, void, GLenum target, GLsizeiptr size, const void* data, GLenum usage) \
-	GL_FUNC(BufferSubData, void, GLenum target, GLintptr offset, GLsizeiptr size, const void* data) \
-	GL_FUNC(DeleteBuffers, void, GLint n, GLuint* buffers) \
-	GL_FUNC(DeleteVertexArrays, void, GLint n, GLuint* arrays) \
-	GL_FUNC(EnableVertexAttribArray, void, GLuint location) \
-	GL_FUNC(DisableVertexAttribArray, void, GLuint location) \
-	GL_FUNC(VertexAttribPointer, void, GLuint index, GLint size, GLenum type, GLboolean normalized, GLint stride, const void* pointer) \
-	GL_FUNC(VertexAttribDivisor, void, GLuint index, GLuint divisor) \
-	GL_FUNC(CreateShader, GLuint, GLenum type) \
-	GL_FUNC(AttachShader, void, GLuint program, GLuint shader) \
-	GL_FUNC(DetachShader, void, GLuint program, GLuint shader) \
-	GL_FUNC(DeleteShader, void, GLuint shader) \
-	GL_FUNC(ShaderSource, void, GLuint shader, GLsizei count, const GLchar** string, const GLint* length) \
-	GL_FUNC(CompileShader, void, GLuint shader) \
-	GL_FUNC(GetShaderiv, void, GLuint shader, GLenum pname, GLint* result) \
-	GL_FUNC(GetShaderInfoLog, void, GLuint shader, GLint maxLength, GLsizei* length, GLchar* infoLog) \
-	GL_FUNC(CreateProgram, GLuint, ) \
-	GL_FUNC(DeleteProgram, void, GLuint program) \
-	GL_FUNC(LinkProgram, void, GLuint program) \
-	GL_FUNC(GetProgramiv, void, GLuint program, GLenum pname, GLint* result) \
-	GL_FUNC(GetProgramInfoLog, void, GLuint program, GLint maxLength, GLsizei* length, GLchar* infoLog) \
-	GL_FUNC(GetActiveUniform, void, GLuint program, GLuint index, GLint bufSize, GLsizei* length, GLint* size, GLenum* type, GLchar* name) \
-	GL_FUNC(GetActiveAttrib, void, GLuint program, GLuint index, GLint bufSize, GLsizei* length, GLint* size, GLenum* type, GLchar* name) \
-	GL_FUNC(UseProgram, void, GLuint program) \
-	GL_FUNC(GetUniformLocation, GLint, GLuint program, const GLchar* name) \
-	GL_FUNC(GetAttribLocation, GLint, GLuint program, const GLchar* name) \
-	GL_FUNC(Uniform1f, void, GLint location, GLfloat v0) \
-	GL_FUNC(Uniform2f, void, GLint location, GLfloat v0, GLfloat v1) \
-	GL_FUNC(Uniform3f, void, GLint location, GLfloat v0, GLfloat v1, GLfloat v2) \
-	GL_FUNC(Uniform4f, void, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) \
-	GL_FUNC(Uniform1fv, void, GLint location, GLint count, const GLfloat* value) \
-	GL_FUNC(Uniform2fv, void, GLint location, GLint count, const GLfloat* value) \
-	GL_FUNC(Uniform3fv, void, GLint location, GLint count, const GLfloat* value) \
-	GL_FUNC(Uniform4fv, void, GLint location, GLint count, const GLfloat* value) \
-	GL_FUNC(Uniform1i, void, GLint location, GLint v0) \
-	GL_FUNC(Uniform2i, void, GLint location, GLint v0, GLint v1) \
-	GL_FUNC(Uniform3i, void, GLint location, GLint v0, GLint v1, GLint v2) \
-	GL_FUNC(Uniform4i, void, GLint location, GLint v0, GLint v1, GLint v2, GLint v3) \
-	GL_FUNC(Uniform1iv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(Uniform2iv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(Uniform3iv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(Uniform4iv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(Uniform1ui, void, GLint location, GLuint v0) \
-	GL_FUNC(Uniform2ui, void, GLint location, GLuint v0, GLuint v1) \
+#define GL_FUNCTIONS                                                           \
+	GL_FUNC(DebugMessageCallback, void, DEBUGPROC callback,                    \
+			const void *userParam)                                             \
+	GL_FUNC(GetString, const GLubyte *, GLenum name)                           \
+	GL_FUNC(Flush, void, void)                                                 \
+	GL_FUNC(Enable, void, GLenum mode)                                         \
+	GL_FUNC(Disable, void, GLenum mode)                                        \
+	GL_FUNC(Clear, void, GLenum mask)                                          \
+	GL_FUNC(ClearColor, void, GLfloat red, GLfloat green, GLfloat blue,        \
+			GLfloat alpha)                                                     \
+	GL_FUNC(ClearDepth, void, GLdouble depth)                                  \
+	GL_FUNC(ClearStencil, void, GLint stencil)                                 \
+	GL_FUNC(DepthMask, void, GLboolean enabled)                                \
+	GL_FUNC(DepthFunc, void, GLenum func)                                      \
+	GL_FUNC(Viewport, void, GLint x, GLint y, GLint width, GLint height)       \
+	GL_FUNC(Scissor, void, GLint x, GLint y, GLint width, GLint height)        \
+	GL_FUNC(CullFace, void, GLenum mode)                                       \
+	GL_FUNC(BlendEquation, void, GLenum eq)                                    \
+	GL_FUNC(BlendEquationSeparate, void, GLenum modeRGB, GLenum modeAlpha)     \
+	GL_FUNC(BlendFunc, void, GLenum sfactor, GLenum dfactor)                   \
+	GL_FUNC(BlendFuncSeparate, void, GLenum srcRGB, GLenum dstRGB,             \
+			GLenum srcAlpha, GLenum dstAlpha)                                  \
+	GL_FUNC(BlendColor, void, GLfloat red, GLfloat green, GLfloat blue,        \
+			GLfloat alpha)                                                     \
+	GL_FUNC(ColorMask, void, GLboolean red, GLboolean green, GLboolean blue,   \
+			GLboolean alpha)                                                   \
+	GL_FUNC(GetIntegerv, void, GLenum name, GLint *data)                       \
+	GL_FUNC(GenTextures, void, GLint n, void *textures)                        \
+	GL_FUNC(GenRenderbuffers, void, GLint n, void *textures)                   \
+	GL_FUNC(GenFramebuffers, void, GLint n, void *textures)                    \
+	GL_FUNC(ActiveTexture, void, GLuint id)                                    \
+	GL_FUNC(BindTexture, void, GLenum target, GLuint id)                       \
+	GL_FUNC(BindRenderbuffer, void, GLenum target, GLuint id)                  \
+	GL_FUNC(BindFramebuffer, void, GLenum target, GLuint id)                   \
+	GL_FUNC(TexImage2D, void, GLenum target, GLint level,                      \
+			GLenum internalFormat, GLint width, GLint height, GLint border,    \
+			GLenum format, GLenum type, const void *data)                      \
+	GL_FUNC(FramebufferRenderbuffer, void, GLenum target, GLenum attachment,   \
+			GLenum renderbuffertarget, GLuint renderbuffer)                    \
+	GL_FUNC(FramebufferTexture2D, void, GLenum target, GLenum attachment,      \
+			GLenum textarget, GLuint texture, GLint level)                     \
+	GL_FUNC(TexParameteri, void, GLenum target, GLenum name, GLint param)      \
+	GL_FUNC(RenderbufferStorage, void, GLenum target, GLenum internalformat,   \
+			GLint width, GLint height)                                         \
+	GL_FUNC(GetTexImage, void, GLenum target, GLint level, GLenum format,      \
+			GLenum type, void *data)                                           \
+	GL_FUNC(DrawElements, void, GLenum mode, GLint count, GLenum type,         \
+			void *indices)                                                     \
+	GL_FUNC(DrawElementsInstanced, void, GLenum mode, GLint count,             \
+			GLenum type, void *indices, GLint amount)                          \
+	GL_FUNC(DeleteTextures, void, GLint n, GLuint *textures)                   \
+	GL_FUNC(DeleteRenderbuffers, void, GLint n, GLuint *renderbuffers)         \
+	GL_FUNC(DeleteFramebuffers, void, GLint n, GLuint *textures)               \
+	GL_FUNC(GenVertexArrays, void, GLint n, GLuint *arrays)                    \
+	GL_FUNC(BindVertexArray, void, GLuint id)                                  \
+	GL_FUNC(GenBuffers, void, GLint n, GLuint *arrays)                         \
+	GL_FUNC(BindBuffer, void, GLenum target, GLuint buffer)                    \
+	GL_FUNC(BufferData, void, GLenum target, GLsizeiptr size,                  \
+			const void *data, GLenum usage)                                    \
+	GL_FUNC(BufferSubData, void, GLenum target, GLintptr offset,               \
+			GLsizeiptr size, const void *data)                                 \
+	GL_FUNC(DeleteBuffers, void, GLint n, GLuint *buffers)                     \
+	GL_FUNC(DeleteVertexArrays, void, GLint n, GLuint *arrays)                 \
+	GL_FUNC(EnableVertexAttribArray, void, GLuint location)                    \
+	GL_FUNC(DisableVertexAttribArray, void, GLuint location)                   \
+	GL_FUNC(VertexAttribPointer, void, GLuint index, GLint size, GLenum type,  \
+			GLboolean normalized, GLint stride, const void *pointer)           \
+	GL_FUNC(VertexAttribDivisor, void, GLuint index, GLuint divisor)           \
+	GL_FUNC(CreateShader, GLuint, GLenum type)                                 \
+	GL_FUNC(AttachShader, void, GLuint program, GLuint shader)                 \
+	GL_FUNC(DetachShader, void, GLuint program, GLuint shader)                 \
+	GL_FUNC(DeleteShader, void, GLuint shader)                                 \
+	GL_FUNC(ShaderSource, void, GLuint shader, GLsizei count,                  \
+			const GLchar **string, const GLint *length)                        \
+	GL_FUNC(CompileShader, void, GLuint shader)                                \
+	GL_FUNC(GetShaderiv, void, GLuint shader, GLenum pname, GLint *result)     \
+	GL_FUNC(GetShaderInfoLog, void, GLuint shader, GLint maxLength,            \
+			GLsizei *length, GLchar *infoLog)                                  \
+	GL_FUNC(CreateProgram, GLuint, )                                           \
+	GL_FUNC(DeleteProgram, void, GLuint program)                               \
+	GL_FUNC(LinkProgram, void, GLuint program)                                 \
+	GL_FUNC(GetProgramiv, void, GLuint program, GLenum pname, GLint *result)   \
+	GL_FUNC(GetProgramInfoLog, void, GLuint program, GLint maxLength,          \
+			GLsizei *length, GLchar *infoLog)                                  \
+	GL_FUNC(GetActiveUniform, void, GLuint program, GLuint index,              \
+			GLint bufSize, GLsizei *length, GLint *size, GLenum *type,         \
+			GLchar *name)                                                      \
+	GL_FUNC(GetActiveAttrib, void, GLuint program, GLuint index,               \
+			GLint bufSize, GLsizei *length, GLint *size, GLenum *type,         \
+			GLchar *name)                                                      \
+	GL_FUNC(UseProgram, void, GLuint program)                                  \
+	GL_FUNC(GetUniformLocation, GLint, GLuint program, const GLchar *name)     \
+	GL_FUNC(GetAttribLocation, GLint, GLuint program, const GLchar *name)      \
+	GL_FUNC(Uniform1f, void, GLint location, GLfloat v0)                       \
+	GL_FUNC(Uniform2f, void, GLint location, GLfloat v0, GLfloat v1)           \
+	GL_FUNC(Uniform3f, void, GLint location, GLfloat v0, GLfloat v1,           \
+			GLfloat v2)                                                        \
+	GL_FUNC(Uniform4f, void, GLint location, GLfloat v0, GLfloat v1,           \
+			GLfloat v2, GLfloat v3)                                            \
+	GL_FUNC(Uniform1fv, void, GLint location, GLint count,                     \
+			const GLfloat *value)                                              \
+	GL_FUNC(Uniform2fv, void, GLint location, GLint count,                     \
+			const GLfloat *value)                                              \
+	GL_FUNC(Uniform3fv, void, GLint location, GLint count,                     \
+			const GLfloat *value)                                              \
+	GL_FUNC(Uniform4fv, void, GLint location, GLint count,                     \
+			const GLfloat *value)                                              \
+	GL_FUNC(Uniform1i, void, GLint location, GLint v0)                         \
+	GL_FUNC(Uniform2i, void, GLint location, GLint v0, GLint v1)               \
+	GL_FUNC(Uniform3i, void, GLint location, GLint v0, GLint v1, GLint v2)     \
+	GL_FUNC(Uniform4i, void, GLint location, GLint v0, GLint v1, GLint v2,     \
+			GLint v3)                                                          \
+	GL_FUNC(Uniform1iv, void, GLint location, GLint count, const GLint *value) \
+	GL_FUNC(Uniform2iv, void, GLint location, GLint count, const GLint *value) \
+	GL_FUNC(Uniform3iv, void, GLint location, GLint count, const GLint *value) \
+	GL_FUNC(Uniform4iv, void, GLint location, GLint count, const GLint *value) \
+	GL_FUNC(Uniform1ui, void, GLint location, GLuint v0)                       \
+	GL_FUNC(Uniform2ui, void, GLint location, GLuint v0, GLuint v1)            \
 	GL_FUNC(Uniform3ui, void, GLint location, GLuint v0, GLuint v1, GLuint v2) \
-	GL_FUNC(Uniform4ui, void, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3) \
-	GL_FUNC(Uniform1uiv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(Uniform2uiv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(Uniform3uiv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(Uniform4uiv, void, GLint location, GLint count, const GLint* value) \
-	GL_FUNC(UniformMatrix2fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix3fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix4fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix2x3fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix3x2fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix2x4fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix4x2fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix3x4fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
-	GL_FUNC(UniformMatrix4x3fv, void, GLint location, GLint count, GLboolean transpose, const GLfloat* value) \
+	GL_FUNC(Uniform4ui, void, GLint location, GLuint v0, GLuint v1, GLuint v2, \
+			GLuint v3)                                                         \
+	GL_FUNC(Uniform1uiv, void, GLint location, GLint count,                    \
+			const GLint *value)                                                \
+	GL_FUNC(Uniform2uiv, void, GLint location, GLint count,                    \
+			const GLint *value)                                                \
+	GL_FUNC(Uniform3uiv, void, GLint location, GLint count,                    \
+			const GLint *value)                                                \
+	GL_FUNC(Uniform4uiv, void, GLint location, GLint count,                    \
+			const GLint *value)                                                \
+	GL_FUNC(UniformMatrix2fv, void, GLint location, GLint count,               \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix3fv, void, GLint location, GLint count,               \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix4fv, void, GLint location, GLint count,               \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix2x3fv, void, GLint location, GLint count,             \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix3x2fv, void, GLint location, GLint count,             \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix2x4fv, void, GLint location, GLint count,             \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix4x2fv, void, GLint location, GLint count,             \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix3x4fv, void, GLint location, GLint count,             \
+			GLboolean transpose, const GLfloat *value)                         \
+	GL_FUNC(UniformMatrix4x3fv, void, GLint location, GLint count,             \
+			GLboolean transpose, const GLfloat *value)                         \
 	GL_FUNC(PixelStorei, void, GLenum pname, GLint param)
 
 // Debug Function Delegate
-typedef void (APIENTRY* DEBUGPROC)(GLenum source,
-	GLenum type,
-	GLuint id,
-	GLenum severity,
-	GLsizei length,
-	const GLchar* message,
-	const void* userParam);
+typedef void(APIENTRY *DEBUGPROC)(GLenum source, GLenum type, GLuint id,
+								  GLenum severity, GLsizei length,
+								  const GLchar *message, const void *userParam);
 
 // shorthand to our internal state
-#define RENDERER ((Renderer_OpenGL*)Internal::app_renderer())
+#define RENDERER ((Renderer_OpenGL *) Internal::app_renderer())
 
-namespace Blah
-{
+namespace Blah {
 	const ShaderData opengl_batch_shader_data = {
-		// vertex shader
+	// vertex shader
 #ifdef __EMSCRIPTEN__
 		"#version 300 es\n"
 #else
@@ -367,7 +405,7 @@ namespace Blah
 		"	v_type = a_type;\n"
 		"}",
 
-		// fragment shader
+	// fragment shader
 #ifdef __EMSCRIPTEN__
 		"#version 300 es\n"
 		"precision mediump float;\n"
@@ -386,23 +424,21 @@ namespace Blah
 		"		v_type.x * color * v_col + \n"
 		"		v_type.y * color.a * v_col + \n"
 		"		v_type.z * v_col;\n"
-		"}"
-	};
+		"}"};
 
-	class Renderer_OpenGL : public Renderer
-	{
-	public:
-
-		struct Bindings
-		{
-			// GL function pointers
-			#define GL_FUNC(name, ret, ...) typedef ret (*name ## Func) (__VA_ARGS__); name ## Func name;
+	class Renderer_OpenGL : public Renderer {
+	  public:
+		struct Bindings {
+// GL function pointers
+#define GL_FUNC(name, ret, ...)                                                \
+	typedef ret (*name##Func)(__VA_ARGS__);                                    \
+	name##Func name;
 			GL_FUNCTIONS
-			#undef GL_FUNC
+#undef GL_FUNC
 		} gl;
 
 		// state
-		void* context;
+		void *context;
 
 		// info
 		int max_color_attachments;
@@ -413,49 +449,79 @@ namespace Blah
 		int max_texture_image_units;
 		int max_texture_size;
 
-		bool init() override;
-		void shutdown() override;
-		void update() override;
-		void before_render() override;
-		void after_render() override;
-		void render(const DrawCall& pass) override;
-		void clear_backbuffer(Color color, float depth, u8 stencil, ClearMask mask) override;
-		TextureRef create_texture(int width, int height, TextureFormat format) override;
-		TargetRef create_target(int width, int height, const TextureFormat* attachments, int attachment_count) override;
-		ShaderRef create_shader(const ShaderData* data) override;
-		MeshRef create_mesh() override;
+		bool	   init() override;
+		void	   shutdown() override;
+		void	   update() override;
+		void	   before_render() override;
+		void	   after_render() override;
+		void	   render(const DrawCall &pass) override;
+		void	   clear_backbuffer(Color color, float depth, u8 stencil,
+									ClearMask mask) override;
+		TextureRef create_texture(int width, int height,
+								  TextureFormat format) override;
+		TargetRef  create_target(int width, int height,
+								 const TextureFormat *attachments,
+								 int				  attachment_count) override;
+		ShaderRef  create_shader(const ShaderData *data) override;
+		MeshRef	   create_mesh() override;
 	};
 
 	// debug callback
-	void APIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-	{
+	void APIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id,
+									  GLenum severity, GLsizei length,
+									  const GLchar *message,
+									  const void   *userParam) {
 		// these are basically never useful
 		if (severity == GL_DEBUG_SEVERITY_NOTIFICATION &&
 			type == GL_DEBUG_TYPE_OTHER)
 			return;
 
-		const char* typeName = "";
-		const char* severityName = "";
+		const char *typeName	 = "";
+		const char *severityName = "";
 
-		switch (type)
-		{
-		case GL_DEBUG_TYPE_ERROR: typeName = "ERROR"; break;
-		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeName = "DEPRECATED BEHAVIOR"; break;
-		case GL_DEBUG_TYPE_MARKER: typeName = "MARKER"; break;
-		case GL_DEBUG_TYPE_OTHER: typeName = "OTHER"; break;
-		case GL_DEBUG_TYPE_PERFORMANCE: typeName = "PEROFRMANCE"; break;
-		case GL_DEBUG_TYPE_POP_GROUP: typeName = "POP GROUP"; break;
-		case GL_DEBUG_TYPE_PORTABILITY: typeName = "PORTABILITY"; break;
-		case GL_DEBUG_TYPE_PUSH_GROUP: typeName = "PUSH GROUP"; break;
-		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeName = "UNDEFINED BEHAVIOR"; break;
+		switch (type) {
+			case GL_DEBUG_TYPE_ERROR:
+				typeName = "ERROR";
+				break;
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+				typeName = "DEPRECATED BEHAVIOR";
+				break;
+			case GL_DEBUG_TYPE_MARKER:
+				typeName = "MARKER";
+				break;
+			case GL_DEBUG_TYPE_OTHER:
+				typeName = "OTHER";
+				break;
+			case GL_DEBUG_TYPE_PERFORMANCE:
+				typeName = "PEROFRMANCE";
+				break;
+			case GL_DEBUG_TYPE_POP_GROUP:
+				typeName = "POP GROUP";
+				break;
+			case GL_DEBUG_TYPE_PORTABILITY:
+				typeName = "PORTABILITY";
+				break;
+			case GL_DEBUG_TYPE_PUSH_GROUP:
+				typeName = "PUSH GROUP";
+				break;
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+				typeName = "UNDEFINED BEHAVIOR";
+				break;
 		}
 
-		switch (severity)
-		{
-		case GL_DEBUG_SEVERITY_HIGH: severityName = "HIGH"; break;
-		case GL_DEBUG_SEVERITY_MEDIUM: severityName = "MEDIUM"; break;
-		case GL_DEBUG_SEVERITY_LOW: severityName = "LOW"; break;
-		case GL_DEBUG_SEVERITY_NOTIFICATION: severityName = "NOTIFICATION"; break;
+		switch (severity) {
+			case GL_DEBUG_SEVERITY_HIGH:
+				severityName = "HIGH";
+				break;
+			case GL_DEBUG_SEVERITY_MEDIUM:
+				severityName = "MEDIUM";
+				break;
+			case GL_DEBUG_SEVERITY_LOW:
+				severityName = "LOW";
+				break;
+			case GL_DEBUG_SEVERITY_NOTIFICATION:
+				severityName = "NOTIFICATION";
+				break;
 		}
 
 		if (type == GL_DEBUG_TYPE_ERROR)
@@ -467,8 +533,9 @@ namespace Blah
 	}
 
 	// assign attributes
-	GLuint gl_mesh_assign_attributes(GLuint buffer, GLenum buffer_type, const VertexFormat& format, GLint divisor)
-	{
+	GLuint gl_mesh_assign_attributes(GLuint buffer, GLenum buffer_type,
+									 const VertexFormat &format,
+									 GLint				 divisor) {
 		// bind
 		RENDERER->gl.BindBuffer(buffer_type, buffer);
 
@@ -478,77 +545,59 @@ namespace Blah
 
 		// enable attributes
 		size_t ptr = 0;
-		for (int n = 0; n < format.attributes.size(); n++)
-		{
-			auto& attribute = format.attributes[n];
-			GLenum type = GL_UNSIGNED_BYTE;
+		for (int n = 0; n < format.attributes.size(); n++) {
+			auto  &attribute	  = format.attributes[n];
+			GLenum type			  = GL_UNSIGNED_BYTE;
 			size_t component_size = 0;
-			int components = 1;
+			int	   components	  = 1;
 
-			if (attribute.type == VertexType::Float)
-			{
-				type = GL_FLOAT;
+			if (attribute.type == VertexType::Float) {
+				type		   = GL_FLOAT;
 				component_size = 4;
-				components = 1;
-			}
-			else if (attribute.type == VertexType::Float2)
-			{
-				type = GL_FLOAT;
+				components	   = 1;
+			} else if (attribute.type == VertexType::Float2) {
+				type		   = GL_FLOAT;
 				component_size = 4;
-				components = 2;
-			}
-			else if (attribute.type == VertexType::Float3)
-			{
-				type = GL_FLOAT;
+				components	   = 2;
+			} else if (attribute.type == VertexType::Float3) {
+				type		   = GL_FLOAT;
 				component_size = 4;
-				components = 3;
-			}
-			else if (attribute.type == VertexType::Float4)
-			{
-				type = GL_FLOAT;
+				components	   = 3;
+			} else if (attribute.type == VertexType::Float4) {
+				type		   = GL_FLOAT;
 				component_size = 4;
-				components = 4;
-			}
-			else if (attribute.type == VertexType::Byte4)
-			{
-				type = GL_BYTE;
+				components	   = 4;
+			} else if (attribute.type == VertexType::Byte4) {
+				type		   = GL_BYTE;
 				component_size = 1;
-				components = 4;
-			}
-			else if (attribute.type == VertexType::UByte4)
-			{
-				type = GL_UNSIGNED_BYTE;
+				components	   = 4;
+			} else if (attribute.type == VertexType::UByte4) {
+				type		   = GL_UNSIGNED_BYTE;
 				component_size = 1;
-				components = 4;
-			}
-			else if (attribute.type == VertexType::Short2)
-			{
-				type = GL_SHORT;
+				components	   = 4;
+			} else if (attribute.type == VertexType::Short2) {
+				type		   = GL_SHORT;
 				component_size = 2;
-				components = 2;
-			}
-			else if (attribute.type == VertexType::UShort2)
-			{
-				type = GL_UNSIGNED_SHORT;
+				components	   = 2;
+			} else if (attribute.type == VertexType::UShort2) {
+				type		   = GL_UNSIGNED_SHORT;
 				component_size = 2;
-				components = 2;
-			}
-			else if (attribute.type == VertexType::Short4)
-			{
-				type = GL_SHORT;
+				components	   = 2;
+			} else if (attribute.type == VertexType::Short4) {
+				type		   = GL_SHORT;
 				component_size = 2;
-				components = 4;
-			}
-			else if (attribute.type == VertexType::UShort4)
-			{
-				type = GL_UNSIGNED_SHORT;
+				components	   = 4;
+			} else if (attribute.type == VertexType::UShort4) {
+				type		   = GL_UNSIGNED_SHORT;
 				component_size = 2;
-				components = 4;
+				components	   = 4;
 			}
 
-			u32 location = (u32)(attribute.index);
+			u32 location = (u32) (attribute.index);
 			RENDERER->gl.EnableVertexAttribArray(location);
-			RENDERER->gl.VertexAttribPointer(location, components, type, attribute.normalized, format.stride, (void*)ptr);
+			RENDERER->gl.VertexAttribPointer(location, components, type,
+											 attribute.normalized,
+											 format.stride, (void *) ptr);
 			RENDERER->gl.VertexAttribDivisor(location, divisor);
 
 			ptr += components * component_size;
@@ -558,107 +607,118 @@ namespace Blah
 	}
 
 	// convert blend op enum
-	GLenum gl_get_blend_func(BlendOp operation)
-	{
-		switch (operation)
-		{
-		case BlendOp::Add:				return GL_FUNC_ADD;
-		case BlendOp::Subtract:			return GL_FUNC_SUBTRACT;
-		case BlendOp::ReverseSubtract:	return GL_FUNC_REVERSE_SUBTRACT;
-		case BlendOp::Min:				return GL_MIN;
-		case BlendOp::Max:				return GL_MAX;
+	GLenum gl_get_blend_func(BlendOp operation) {
+		switch (operation) {
+			case BlendOp::Add:
+				return GL_FUNC_ADD;
+			case BlendOp::Subtract:
+				return GL_FUNC_SUBTRACT;
+			case BlendOp::ReverseSubtract:
+				return GL_FUNC_REVERSE_SUBTRACT;
+			case BlendOp::Min:
+				return GL_MIN;
+			case BlendOp::Max:
+				return GL_MAX;
 		};
 		return GL_FUNC_ADD;
 	}
 
 	// convert blend factor enum
-	GLenum gl_get_blend_factor(BlendFactor factor)
-	{
-		switch (factor)
-		{
-		case BlendFactor::Zero:						return GL_ZERO;
-		case BlendFactor::One:						return GL_ONE;
-		case BlendFactor::SrcColor:					return GL_SRC_COLOR;
-		case BlendFactor::OneMinusSrcColor:			return GL_ONE_MINUS_SRC_COLOR;
-		case BlendFactor::DstColor:					return GL_DST_COLOR;
-		case BlendFactor::OneMinusDstColor:			return GL_ONE_MINUS_DST_COLOR;
-		case BlendFactor::SrcAlpha:					return GL_SRC_ALPHA;
-		case BlendFactor::OneMinusSrcAlpha:			return GL_ONE_MINUS_SRC_ALPHA;
-		case BlendFactor::DstAlpha:					return GL_DST_ALPHA;
-		case BlendFactor::OneMinusDstAlpha:			return GL_ONE_MINUS_DST_ALPHA;
-		case BlendFactor::ConstantColor:			return GL_CONSTANT_COLOR;
-		case BlendFactor::OneMinusConstantColor:	return GL_ONE_MINUS_CONSTANT_COLOR;
-		case BlendFactor::ConstantAlpha:			return GL_CONSTANT_ALPHA;
-		case BlendFactor::OneMinusConstantAlpha:	return GL_ONE_MINUS_CONSTANT_ALPHA;
-		case BlendFactor::SrcAlphaSaturate:			return GL_SRC_ALPHA_SATURATE;
-		case BlendFactor::Src1Color:				return GL_SRC1_COLOR;
-		case BlendFactor::OneMinusSrc1Color:		return GL_ONE_MINUS_SRC1_COLOR;
-		case BlendFactor::Src1Alpha:				return GL_SRC1_ALPHA;
-		case BlendFactor::OneMinusSrc1Alpha:		return GL_ONE_MINUS_SRC1_ALPHA;
+	GLenum gl_get_blend_factor(BlendFactor factor) {
+		switch (factor) {
+			case BlendFactor::Zero:
+				return GL_ZERO;
+			case BlendFactor::One:
+				return GL_ONE;
+			case BlendFactor::SrcColor:
+				return GL_SRC_COLOR;
+			case BlendFactor::OneMinusSrcColor:
+				return GL_ONE_MINUS_SRC_COLOR;
+			case BlendFactor::DstColor:
+				return GL_DST_COLOR;
+			case BlendFactor::OneMinusDstColor:
+				return GL_ONE_MINUS_DST_COLOR;
+			case BlendFactor::SrcAlpha:
+				return GL_SRC_ALPHA;
+			case BlendFactor::OneMinusSrcAlpha:
+				return GL_ONE_MINUS_SRC_ALPHA;
+			case BlendFactor::DstAlpha:
+				return GL_DST_ALPHA;
+			case BlendFactor::OneMinusDstAlpha:
+				return GL_ONE_MINUS_DST_ALPHA;
+			case BlendFactor::ConstantColor:
+				return GL_CONSTANT_COLOR;
+			case BlendFactor::OneMinusConstantColor:
+				return GL_ONE_MINUS_CONSTANT_COLOR;
+			case BlendFactor::ConstantAlpha:
+				return GL_CONSTANT_ALPHA;
+			case BlendFactor::OneMinusConstantAlpha:
+				return GL_ONE_MINUS_CONSTANT_ALPHA;
+			case BlendFactor::SrcAlphaSaturate:
+				return GL_SRC_ALPHA_SATURATE;
+			case BlendFactor::Src1Color:
+				return GL_SRC1_COLOR;
+			case BlendFactor::OneMinusSrc1Color:
+				return GL_ONE_MINUS_SRC1_COLOR;
+			case BlendFactor::Src1Alpha:
+				return GL_SRC1_ALPHA;
+			case BlendFactor::OneMinusSrc1Alpha:
+				return GL_ONE_MINUS_SRC1_ALPHA;
 		};
 
 		return GL_ZERO;
 	}
 
-	class OpenGL_Texture : public Texture
-	{
-	private:
-		GLuint m_id;
-		int m_width;
-		int m_height;
+	class OpenGL_Texture : public Texture {
+	  private:
+		GLuint		   m_id;
+		int			   m_width;
+		int			   m_height;
 		TextureSampler m_sampler;
-		TextureFormat m_format;
-		GLenum m_gl_internal_format;
-		GLenum m_gl_format;
-		GLenum m_gl_type;
+		TextureFormat  m_format;
+		GLenum		   m_gl_internal_format;
+		GLenum		   m_gl_format;
+		GLenum		   m_gl_type;
 
-	public:
+	  public:
 		bool framebuffer_parent;
 
-		OpenGL_Texture(int width, int height, TextureFormat format)
-		{
-			m_id = 0;
-			m_width = width;
-			m_height = height;
-			m_sampler = TextureSampler(TextureFilter::None, TextureWrap::None, TextureWrap::None);
-			m_format = format;
-			framebuffer_parent = false;
+		OpenGL_Texture(int width, int height, TextureFormat format) {
+			m_id	  = 0;
+			m_width	  = width;
+			m_height  = height;
+			m_sampler = TextureSampler(TextureFilter::None, TextureWrap::None,
+									   TextureWrap::None);
+			m_format  = format;
+			framebuffer_parent	 = false;
 			m_gl_internal_format = GL_RED;
-			m_gl_format = GL_RED;
-			m_gl_type = GL_UNSIGNED_BYTE;
+			m_gl_format			 = GL_RED;
+			m_gl_type			 = GL_UNSIGNED_BYTE;
 
-			if (width > RENDERER->max_texture_size || height > RENDERER->max_texture_size)
-			{
-				Log::error("Exceeded Max Texture Size of %i", RENDERER->max_texture_size);
+			if (width > RENDERER->max_texture_size ||
+				height > RENDERER->max_texture_size) {
+				Log::error("Exceeded Max Texture Size of %i",
+						   RENDERER->max_texture_size);
 				return;
 			}
 
-			if (format == TextureFormat::R)
-			{
+			if (format == TextureFormat::R) {
 				m_gl_internal_format = GL_RED;
-				m_gl_format = GL_RED;
-				m_gl_type = GL_UNSIGNED_BYTE;
-			}
-			else if (format == TextureFormat::RG)
-			{
+				m_gl_format			 = GL_RED;
+				m_gl_type			 = GL_UNSIGNED_BYTE;
+			} else if (format == TextureFormat::RG) {
 				m_gl_internal_format = GL_RG;
-				m_gl_format = GL_RG;
-				m_gl_type = GL_UNSIGNED_BYTE;
-			}
-			else if (format == TextureFormat::RGBA)
-			{
+				m_gl_format			 = GL_RG;
+				m_gl_type			 = GL_UNSIGNED_BYTE;
+			} else if (format == TextureFormat::RGBA) {
 				m_gl_internal_format = GL_RGBA;
-				m_gl_format = GL_RGBA;
-				m_gl_type = GL_UNSIGNED_BYTE;
-			}
-			else if (format == TextureFormat::DepthStencil)
-			{
+				m_gl_format			 = GL_RGBA;
+				m_gl_type			 = GL_UNSIGNED_BYTE;
+			} else if (format == TextureFormat::DepthStencil) {
 				m_gl_internal_format = GL_DEPTH24_STENCIL8;
-				m_gl_format = GL_DEPTH_STENCIL;
-				m_gl_type = GL_UNSIGNED_INT_24_8;
-			}
-			else
-			{
+				m_gl_format			 = GL_DEPTH_STENCIL;
+				m_gl_type			 = GL_UNSIGNED_INT_24_8;
+			} else {
 				Log::error("Invalid Texture Format %i", format);
 				return;
 			}
@@ -666,154 +726,154 @@ namespace Blah
 			RENDERER->gl.GenTextures(1, &m_id);
 			RENDERER->gl.ActiveTexture(GL_TEXTURE0);
 			RENDERER->gl.BindTexture(GL_TEXTURE_2D, m_id);
-			RENDERER->gl.TexImage2D(GL_TEXTURE_2D, 0, m_gl_internal_format, width, height, 0, m_gl_format, m_gl_type, nullptr);
+			RENDERER->gl.TexImage2D(GL_TEXTURE_2D, 0, m_gl_internal_format,
+									width, height, 0, m_gl_format, m_gl_type,
+									nullptr);
 		}
 
-		~OpenGL_Texture()
-		{
+		~OpenGL_Texture() {
 			if (m_id > 0 && RENDERER)
 				RENDERER->gl.DeleteTextures(1, &m_id);
 		}
 
-		GLuint gl_id() const
-		{
+		GLuint gl_id() const {
 			return m_id;
 		}
 
-		virtual int width() const override
-		{
+		virtual int width() const override {
 			return m_width;
 		}
 
-		virtual int height() const override
-		{
+		virtual int height() const override {
 			return m_height;
 		}
 
-		virtual TextureFormat format() const override
-		{
+		virtual TextureFormat format() const override {
 			return m_format;
 		}
 
-		void update_sampler(const TextureSampler& sampler)
-		{
-			if (m_sampler != sampler)
-			{
+		void update_sampler(const TextureSampler &sampler) {
+			if (m_sampler != sampler) {
 				m_sampler = sampler;
 
 				RENDERER->gl.BindTexture(GL_TEXTURE_2D, m_id);
-				RENDERER->gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (m_sampler.filter == TextureFilter::Nearest ? GL_NEAREST : GL_LINEAR));
-				RENDERER->gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (m_sampler.filter == TextureFilter::Nearest ? GL_NEAREST : GL_LINEAR));
-				RENDERER->gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (m_sampler.wrap_x == TextureWrap::Clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT));
-				RENDERER->gl.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (m_sampler.wrap_y == TextureWrap::Clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT));
+				RENDERER->gl.TexParameteri(
+					GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+					(m_sampler.filter == TextureFilter::Nearest ? GL_NEAREST
+																: GL_LINEAR));
+				RENDERER->gl.TexParameteri(
+					GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+					(m_sampler.filter == TextureFilter::Nearest ? GL_NEAREST
+																: GL_LINEAR));
+				RENDERER->gl.TexParameteri(
+					GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+					(m_sampler.wrap_x == TextureWrap::Clamp ? GL_CLAMP_TO_EDGE
+															: GL_REPEAT));
+				RENDERER->gl.TexParameteri(
+					GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+					(m_sampler.wrap_y == TextureWrap::Clamp ? GL_CLAMP_TO_EDGE
+															: GL_REPEAT));
 			}
 		}
 
-		virtual void set_data(const u8* data) override
-		{
+		virtual void set_data(const u8 *data) override {
 			RENDERER->gl.ActiveTexture(GL_TEXTURE0);
 			RENDERER->gl.BindTexture(GL_TEXTURE_2D, m_id);
-			RENDERER->gl.TexImage2D(GL_TEXTURE_2D, 0, m_gl_internal_format, m_width, m_height, 0, m_gl_format, m_gl_type, data);
+			RENDERER->gl.TexImage2D(GL_TEXTURE_2D, 0, m_gl_internal_format,
+									m_width, m_height, 0, m_gl_format,
+									m_gl_type, data);
 		}
 
-		virtual void get_data(u8* data) override
-		{
+		virtual void get_data(u8 *data) override {
 			RENDERER->gl.ActiveTexture(GL_TEXTURE0);
 			RENDERER->gl.BindTexture(GL_TEXTURE_2D, m_id);
-			RENDERER->gl.GetTexImage(GL_TEXTURE_2D, 0, m_gl_internal_format, m_gl_type, data);
+			RENDERER->gl.GetTexImage(GL_TEXTURE_2D, 0, m_gl_internal_format,
+									 m_gl_type, data);
 		}
 
-		virtual bool is_framebuffer() const override
-		{
+		virtual bool is_framebuffer() const override {
 			return framebuffer_parent;
 		}
-
 	};
 
-	class OpenGL_Target : public Target
-	{
-	private:
-		GLuint m_id;
-		int m_width;
-		int m_height;
+	class OpenGL_Target : public Target {
+	  private:
+		GLuint										   m_id;
+		int											   m_width;
+		int											   m_height;
 		StackVector<TextureRef, Attachments::capacity> m_attachments;
 
-	public:
-
-		OpenGL_Target(int width, int height, const TextureFormat* attachments, int attachmentCount)
-		{
+	  public:
+		OpenGL_Target(int width, int height, const TextureFormat *attachments,
+					  int attachmentCount) {
 			RENDERER->gl.GenFramebuffers(1, &m_id);
-			m_width = width;
+			m_width	 = width;
 			m_height = height;
 
 			RENDERER->gl.BindFramebuffer(GL_FRAMEBUFFER, m_id);
 
-			for (int i = 0; i < attachmentCount; i++)
-			{
-				auto tex = Texture::create(width, height, attachments[i]);
-				auto gltex = ((OpenGL_Texture*)tex.get());
+			for (int i = 0; i < attachmentCount; i++) {
+				auto tex   = Texture::create(width, height, attachments[i]);
+				auto gltex = ((OpenGL_Texture *) tex.get());
 
 				gltex->framebuffer_parent = true;
 				m_attachments.push_back(tex);
 
-				if (attachments[i] != TextureFormat::DepthStencil)
-				{
-					RENDERER->gl.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, gltex->gl_id(), 0);
-				}
-				else
-				{
-					RENDERER->gl.FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gltex->gl_id(), 0);
+				if (attachments[i] != TextureFormat::DepthStencil) {
+					RENDERER->gl.FramebufferTexture2D(
+						GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D,
+						gltex->gl_id(), 0);
+				} else {
+					RENDERER->gl.FramebufferTexture2D(
+						GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+						GL_TEXTURE_2D, gltex->gl_id(), 0);
 				}
 			}
 		}
 
-		~OpenGL_Target()
-		{
-			if (m_id > 0 && RENDERER)
-			{
+		~OpenGL_Target() {
+			if (m_id > 0 && RENDERER) {
 				RENDERER->gl.DeleteFramebuffers(1, &m_id);
 				m_id = 0;
 			}
 		}
 
-		GLuint gl_id() const
-		{
+		GLuint gl_id() const {
 			return m_id;
 		}
 
-		virtual Attachments& textures() override
-		{
+		virtual Attachments &textures() override {
 			return m_attachments;
 		}
 
-		virtual const Attachments& textures() const override
-		{
+		virtual const Attachments &textures() const override {
 			return m_attachments;
 		}
 
-		virtual void clear(Color color, float depth, u8 stencil, ClearMask mask) override
-		{
+		virtual void clear(Color color, float depth, u8 stencil,
+						   ClearMask mask) override {
 			RENDERER->gl.BindFramebuffer(GL_FRAMEBUFFER, m_id);
 			RENDERER->gl.Disable(GL_SCISSOR_TEST);
 
 			int clear = 0;
 
-			if (((int)mask & (int)ClearMask::Color) == (int)ClearMask::Color)
-			{
+			if (((int) mask & (int) ClearMask::Color) ==
+				(int) ClearMask::Color) {
 				clear |= GL_COLOR_BUFFER_BIT;
 				RENDERER->gl.ColorMask(true, true, true, true);
-				RENDERER->gl.ClearColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+				RENDERER->gl.ClearColor(color.r / 255.0f, color.g / 255.0f,
+										color.b / 255.0f, color.a / 255.0f);
 			}
-			
-			if (((int)mask & (int)ClearMask::Depth) == (int)ClearMask::Depth)
-			{
+
+			if (((int) mask & (int) ClearMask::Depth) ==
+				(int) ClearMask::Depth) {
 				clear |= GL_DEPTH_BUFFER_BIT;
 				if (RENDERER->gl.ClearDepth)
 					RENDERER->gl.ClearDepth(depth);
 			}
 
-			if (((int)mask & (int)ClearMask::Stencil) == (int)ClearMask::Stencil)
-			{
+			if (((int) mask & (int) ClearMask::Stencil) ==
+				(int) ClearMask::Stencil) {
 				clear |= GL_STENCIL_BUFFER_BIT;
 				if (RENDERER->gl.ClearStencil)
 					RENDERER->gl.ClearStencil(stencil);
@@ -823,58 +883,55 @@ namespace Blah
 		}
 	};
 
-	class OpenGL_Shader : public Shader
-	{
-	private:
-		GLuint m_id;
+	class OpenGL_Shader : public Shader {
+	  private:
+		GLuint				m_id;
 		Vector<UniformInfo> m_uniforms;
 
-	public:
+	  public:
 		Vector<GLint> uniform_locations;
 
-		OpenGL_Shader(const ShaderData* data)
-		{
+		OpenGL_Shader(const ShaderData *data) {
 			m_id = 0;
 
-			if (data->vertex.length() <= 0)
-			{
+			if (data->vertex.length() <= 0) {
 				Log::error("Vertex Shader is required");
 				return;
 			}
 
-			if (data->fragment.length() <= 0)
-			{
+			if (data->fragment.length() <= 0) {
 				Log::error("Fragment Shader is required");
 				return;
 			}
 
-			GLchar log[1024] = { 0 };
+			GLchar	log[1024]  = {0};
 			GLsizei log_length = 0;
 
 			GLuint vertex_shader = RENDERER->gl.CreateShader(GL_VERTEX_SHADER);
 			{
-				const GLchar* source = (const GLchar*)data->vertex.cstr();
+				const GLchar *source = (const GLchar *) data->vertex.cstr();
 				RENDERER->gl.ShaderSource(vertex_shader, 1, &source, nullptr);
 				RENDERER->gl.CompileShader(vertex_shader);
-				RENDERER->gl.GetShaderInfoLog(vertex_shader, 1024, &log_length, log);
+				RENDERER->gl.GetShaderInfoLog(vertex_shader, 1024, &log_length,
+											  log);
 
-				if (log_length > 0)
-				{
+				if (log_length > 0) {
 					RENDERER->gl.DeleteShader(vertex_shader);
 					Log::error(log);
 					return;
 				}
 			}
 
-			GLuint fragment_shader = RENDERER->gl.CreateShader(GL_FRAGMENT_SHADER);
+			GLuint fragment_shader =
+				RENDERER->gl.CreateShader(GL_FRAGMENT_SHADER);
 			{
-				const GLchar* source = (const GLchar*)data->fragment.cstr();
+				const GLchar *source = (const GLchar *) data->fragment.cstr();
 				RENDERER->gl.ShaderSource(fragment_shader, 1, &source, nullptr);
 				RENDERER->gl.CompileShader(fragment_shader);
-				RENDERER->gl.GetShaderInfoLog(fragment_shader, 1024, &log_length, log);
+				RENDERER->gl.GetShaderInfoLog(fragment_shader, 1024,
+											  &log_length, log);
 
-				if (log_length > 0)
-				{
+				if (log_length > 0) {
 					RENDERER->gl.DeleteShader(vertex_shader);
 					RENDERER->gl.DeleteShader(fragment_shader);
 					Log::error(log);
@@ -893,8 +950,7 @@ namespace Blah
 			RENDERER->gl.DeleteShader(vertex_shader);
 			RENDERER->gl.DeleteShader(fragment_shader);
 
-			if (log_length > 0)
-			{
+			if (log_length > 0) {
 				Log::error(log);
 				return;
 			}
@@ -904,65 +960,66 @@ namespace Blah
 			{
 				const int max_name_length = 256;
 
-				GLint active_uniforms = 0;
+				GLint active_uniforms  = 0;
 				GLint sampler_uniforms = 0;
-				RENDERER->gl.GetProgramiv(id, GL_ACTIVE_UNIFORMS, &active_uniforms);
+				RENDERER->gl.GetProgramiv(id, GL_ACTIVE_UNIFORMS,
+										  &active_uniforms);
 
-				for (int i = 0; i < active_uniforms; i++)
-				{
+				for (int i = 0; i < active_uniforms; i++) {
 					GLsizei length;
 					GLsizei size;
-					GLenum type;
-					GLchar name[max_name_length + 1] = { 0 };
+					GLenum	type;
+					GLchar	name[max_name_length + 1] = {0};
 
-					RENDERER->gl.GetActiveUniform(id, i, max_name_length, &length, &size, &type, name);
+					RENDERER->gl.GetActiveUniform(id, i, max_name_length,
+												  &length, &size, &type, name);
 					name[length] = '\0';
 
 					// array names end with "[0]", and we don't want that
 					for (int n = 0; n < max_name_length; n++)
-						if (name[n] == '[')
-						{
-							if (name[n + 1] == '0' && name[n + 2] == ']')
-							{
+						if (name[n] == '[') {
+							if (name[n + 1] == '0' && name[n + 2] == ']') {
 								name[n] = '\0';
 								break;
 							}
 						}
 
-					if (type == GL_SAMPLER_2D)
-					{
+					if (type == GL_SAMPLER_2D) {
 						UniformInfo tex_uniform;
-						tex_uniform.name = name;
+						tex_uniform.name		   = name;
 						tex_uniform.register_index = sampler_uniforms;
-						tex_uniform.buffer_index = 0;
-						tex_uniform.array_length = size;
-						tex_uniform.type = UniformType::Texture2D;
-						tex_uniform.shader = ShaderType::Fragment;
-						uniform_locations.push_back(RENDERER->gl.GetUniformLocation(id, name));
+						tex_uniform.buffer_index   = 0;
+						tex_uniform.array_length   = size;
+						tex_uniform.type		   = UniformType::Texture2D;
+						tex_uniform.shader		   = ShaderType::Fragment;
+						uniform_locations.push_back(
+							RENDERER->gl.GetUniformLocation(id, name));
 						m_uniforms.push_back(tex_uniform);
 
 						UniformInfo sampler_uniform;
 						sampler_uniform.name = String(name) + "_sampler";
 						sampler_uniform.register_index = sampler_uniforms;
-						sampler_uniform.buffer_index = 0;
-						sampler_uniform.array_length = size;
-						sampler_uniform.type = UniformType::Sampler2D;
-						sampler_uniform.shader = ShaderType::Fragment;
-						uniform_locations.push_back(RENDERER->gl.GetUniformLocation(id, name));
+						sampler_uniform.buffer_index   = 0;
+						sampler_uniform.array_length   = size;
+						sampler_uniform.type		   = UniformType::Sampler2D;
+						sampler_uniform.shader		   = ShaderType::Fragment;
+						uniform_locations.push_back(
+							RENDERER->gl.GetUniformLocation(id, name));
 						m_uniforms.push_back(sampler_uniform);
 
 						sampler_uniforms += size;
-					}
-					else
-					{
+					} else {
 						UniformInfo uniform;
-						uniform.name = name;
-						uniform.type = UniformType::None;
+						uniform.name		   = name;
+						uniform.type		   = UniformType::None;
 						uniform.register_index = 0;
-						uniform.buffer_index = 0;
-						uniform.array_length = size;
-						uniform_locations.push_back(RENDERER->gl.GetUniformLocation(id, name));
-						uniform.shader = (ShaderType)((int)ShaderType::Vertex | (int)ShaderType::Fragment);
+						uniform.buffer_index   = 0;
+						uniform.array_length   = size;
+						uniform_locations.push_back(
+							RENDERER->gl.GetUniformLocation(id, name));
+						uniform.shader =
+							(ShaderType) ((int) ShaderType::Vertex |
+										  (int) ShaderType::Fragment);
 
 						if (type == GL_FLOAT)
 							uniform.type = UniformType::Float;
@@ -976,8 +1033,7 @@ namespace Blah
 							uniform.type = UniformType::Mat3x2;
 						else if (type == GL_FLOAT_MAT4)
 							uniform.type = UniformType::Mat4x4;
-						else
-						{
+						else {
 							valid_uniforms = false;
 							Log::error("Unsupported Uniform Type");
 							break;
@@ -985,7 +1041,6 @@ namespace Blah
 
 						m_uniforms.push_back(uniform);
 					}
-
 				}
 			}
 
@@ -996,71 +1051,62 @@ namespace Blah
 				m_id = id;
 		}
 
-		~OpenGL_Shader()
-		{
+		~OpenGL_Shader() {
 			if (m_id > 0 && RENDERER)
 				RENDERER->gl.DeleteProgram(m_id);
 			m_id = 0;
 		}
 
-		GLuint gl_id() const
-		{
+		GLuint gl_id() const {
 			return m_id;
 		}
 
-		virtual Vector<UniformInfo>& uniforms() override
-		{
+		virtual Vector<UniformInfo> &uniforms() override {
 			return m_uniforms;
 		}
 
-		virtual const Vector<UniformInfo>& uniforms() const override
-		{
+		virtual const Vector<UniformInfo> &uniforms() const override {
 			return m_uniforms;
 		}
 	};
 
-	class OpenGL_Mesh : public Mesh
-	{
-	private:
-		GLuint m_id;
-		GLuint m_index_buffer;
-		GLuint m_vertex_buffer;
-		GLuint m_instance_buffer;
-		i64 m_index_count;
-		i64 m_vertex_count;
-		i64 m_instance_count;
-		u16 m_vertex_size;
-		u16 m_instance_size;
-		u8 m_vertex_attribs_enabled;
-		u8 m_instance_attribs_enabled;
+	class OpenGL_Mesh : public Mesh {
+	  private:
+		GLuint		   m_id;
+		GLuint		   m_index_buffer;
+		GLuint		   m_vertex_buffer;
+		GLuint		   m_instance_buffer;
+		i64			   m_index_count;
+		i64			   m_vertex_count;
+		i64			   m_instance_count;
+		u16			   m_vertex_size;
+		u16			   m_instance_size;
+		u8			   m_vertex_attribs_enabled;
+		u8			   m_instance_attribs_enabled;
 		Vector<GLuint> m_vertex_attribs;
 		Vector<GLuint> m_instance_attribs;
-		GLenum m_index_format;
-		int m_index_size;
+		GLenum		   m_index_format;
+		int			   m_index_size;
 
-	public:
-
-		OpenGL_Mesh()
-		{
-			m_id = 0;
-			m_index_buffer = 0;
-			m_vertex_buffer = 0;
-			m_instance_buffer = 0;
-			m_index_count = 0;
-			m_vertex_count = 0;
-			m_instance_count = 0;
-			m_vertex_size = 0;
-			m_instance_size = 0;
-			m_vertex_attribs_enabled = 0;
+	  public:
+		OpenGL_Mesh() {
+			m_id					   = 0;
+			m_index_buffer			   = 0;
+			m_vertex_buffer			   = 0;
+			m_instance_buffer		   = 0;
+			m_index_count			   = 0;
+			m_vertex_count			   = 0;
+			m_instance_count		   = 0;
+			m_vertex_size			   = 0;
+			m_instance_size			   = 0;
+			m_vertex_attribs_enabled   = 0;
 			m_instance_attribs_enabled = 0;
 
 			RENDERER->gl.GenVertexArrays(1, &m_id);
 		}
 
-		~OpenGL_Mesh()
-		{
-			if (RENDERER)
-			{
+		~OpenGL_Mesh() {
+			if (RENDERER) {
 				if (m_vertex_buffer != 0)
 					RENDERER->gl.DeleteBuffers(1, &m_vertex_buffer);
 				if (m_index_buffer != 0)
@@ -1073,23 +1119,20 @@ namespace Blah
 			m_id = 0;
 		}
 
-		GLuint gl_id() const
-		{
+		GLuint gl_id() const {
 			return m_id;
 		}
 
-		GLenum gl_index_format() const
-		{
+		GLenum gl_index_format() const {
 			return m_index_format;
 		}
 
-		int gl_index_size() const
-		{
+		int gl_index_size() const {
 			return m_index_size;
 		}
 
-		virtual void index_data(IndexFormat format, const void* indices, i64 count) override
-		{
+		virtual void index_data(IndexFormat format, const void *indices,
+								i64 count) override {
 			m_index_count = count;
 
 			RENDERER->gl.BindVertexArray(m_id);
@@ -1097,26 +1140,28 @@ namespace Blah
 				if (m_index_buffer == 0)
 					RENDERER->gl.GenBuffers(1, &(m_index_buffer));
 
-				switch (format)
-				{
-				case IndexFormat::UInt16:
-					m_index_format = GL_UNSIGNED_SHORT;
-					m_index_size = 2;
-					break;
-				case IndexFormat::UInt32:
-					m_index_format = GL_UNSIGNED_INT;
-					m_index_size = 4;
-					break;
+				switch (format) {
+					case IndexFormat::UInt16:
+						m_index_format = GL_UNSIGNED_SHORT;
+						m_index_size   = 2;
+						break;
+					case IndexFormat::UInt32:
+						m_index_format = GL_UNSIGNED_INT;
+						m_index_size   = 4;
+						break;
 				}
 
-				RENDERER->gl.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
-				RENDERER->gl.BufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_size * count, indices, GL_DYNAMIC_DRAW);
+				RENDERER->gl.BindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+										m_index_buffer);
+				RENDERER->gl.BufferData(GL_ELEMENT_ARRAY_BUFFER,
+										m_index_size * count, indices,
+										GL_DYNAMIC_DRAW);
 			}
 			RENDERER->gl.BindVertexArray(0);
 		}
 
-		virtual void vertex_data(const VertexFormat& format, const void* vertices, i64 count) override
-		{
+		virtual void vertex_data(const VertexFormat &format,
+								 const void *vertices, i64 count) override {
 			m_vertex_count = count;
 
 			RENDERER->gl.BindVertexArray(m_id);
@@ -1127,17 +1172,19 @@ namespace Blah
 
 				// TODO:
 				// Cache this
-				m_vertex_size = gl_mesh_assign_attributes(m_vertex_buffer, GL_ARRAY_BUFFER, format, 0);
+				m_vertex_size = gl_mesh_assign_attributes(
+					m_vertex_buffer, GL_ARRAY_BUFFER, format, 0);
 
 				// Upload Buffer
 				RENDERER->gl.BindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-				RENDERER->gl.BufferData(GL_ARRAY_BUFFER, m_vertex_size * count, vertices, GL_DYNAMIC_DRAW);
+				RENDERER->gl.BufferData(GL_ARRAY_BUFFER, m_vertex_size * count,
+										vertices, GL_DYNAMIC_DRAW);
 			}
 			RENDERER->gl.BindVertexArray(0);
 		}
 
-		virtual void instance_data(const VertexFormat& format, const void* instances, i64 count) override
-		{
+		virtual void instance_data(const VertexFormat &format,
+								   const void *instances, i64 count) override {
 			m_instance_count = count;
 
 			RENDERER->gl.BindVertexArray(m_id);
@@ -1148,50 +1195,49 @@ namespace Blah
 
 				// TODO:
 				// Cache this
-				m_instance_size = gl_mesh_assign_attributes(m_instance_buffer, GL_ARRAY_BUFFER, format, 1);
+				m_instance_size = gl_mesh_assign_attributes(
+					m_instance_buffer, GL_ARRAY_BUFFER, format, 1);
 
 				// Upload Buffer
 				RENDERER->gl.BindBuffer(GL_ARRAY_BUFFER, m_instance_buffer);
-				RENDERER->gl.BufferData(GL_ARRAY_BUFFER, m_instance_size * count, instances, GL_DYNAMIC_DRAW);
+				RENDERER->gl.BufferData(GL_ARRAY_BUFFER,
+										m_instance_size * count, instances,
+										GL_DYNAMIC_DRAW);
 			}
 			RENDERER->gl.BindVertexArray(0);
 		}
 
-		virtual i64 index_count() const override
-		{
+		virtual i64 index_count() const override {
 			return m_index_count;
 		}
 
-		virtual i64 vertex_count() const override
-		{
+		virtual i64 vertex_count() const override {
 			return m_vertex_count;
 		}
 
-		virtual i64 instance_count() const override
-		{
+		virtual i64 instance_count() const override {
 			return m_instance_count;
 		}
 	};
 
-	bool Renderer_OpenGL::init()
-	{
+	bool Renderer_OpenGL::init() {
 		// create gl context
 		context = Platform::gl_context_create();
-		if (context == nullptr)
-		{
+		if (context == nullptr) {
 			Log::error("Failed to create OpenGL Context");
 			return false;
 		}
 		Platform::gl_context_make_current(context);
 
-		// bind opengl functions
-		#define GL_FUNC(name, ...) gl.name = (Renderer_OpenGL::Bindings::name ## Func)(Platform::gl_get_func("gl" #name));
+// bind opengl functions
+#define GL_FUNC(name, ...)                                                     \
+	gl.name = (Renderer_OpenGL::Bindings::name##Func)(                         \
+		Platform::gl_get_func("gl" #name));
 		GL_FUNCTIONS
-		#undef GL_FUNC
+#undef GL_FUNC
 
 		// bind debug message callback
-		if (gl.DebugMessageCallback != nullptr)
-		{
+		if (gl.DebugMessageCallback != nullptr) {
 			gl.Enable(GL_DEBUG_OUTPUT);
 			gl.Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 			gl.DebugMessageCallback(gl_message_callback, nullptr);
@@ -1207,19 +1253,18 @@ namespace Blah
 		gl.GetIntegerv(0x0D33, &max_texture_size);
 
 		// log
-		Log::info("OpenGL %s, %s",
-			gl.GetString(GL_VERSION),
-			gl.GetString(GL_RENDERER));
+		Log::info("OpenGL %s, %s", gl.GetString(GL_VERSION),
+				  gl.GetString(GL_RENDERER));
 
 		// don't include row padding
 		gl.PixelStorei(GL_PACK_ALIGNMENT, 1);
 		gl.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 		// assign info
-		info.type = RendererType::OpenGL;
-		info.instancing = true;
+		info.type				= RendererType::OpenGL;
+		info.instancing			= true;
 		info.origin_bottom_left = true;
-		info.max_texture_size = max_texture_size;
+		info.max_texture_size	= max_texture_size;
 
 		// create the default batch shader
 		default_batcher_shader = Shader::create(opengl_batch_shader_data);
@@ -1227,22 +1272,23 @@ namespace Blah
 		return true;
 	}
 
-	void Renderer_OpenGL::shutdown()
-	{
+	void Renderer_OpenGL::shutdown() {
 		Platform::gl_context_destroy(context);
 		context = nullptr;
 	}
 
-	void Renderer_OpenGL::update() {}
-	void Renderer_OpenGL::before_render() {}
-	void Renderer_OpenGL::after_render() {}
+	void Renderer_OpenGL::update() {
+	}
+	void Renderer_OpenGL::before_render() {
+	}
+	void Renderer_OpenGL::after_render() {
+	}
 
-	TextureRef Renderer_OpenGL::create_texture(int width, int height, TextureFormat format)
-	{
+	TextureRef Renderer_OpenGL::create_texture(int width, int height,
+											   TextureFormat format) {
 		auto resource = new OpenGL_Texture(width, height, format);
 
-		if (resource->gl_id() <= 0)
-		{
+		if (resource->gl_id() <= 0) {
 			delete resource;
 			return TextureRef();
 		}
@@ -1250,12 +1296,13 @@ namespace Blah
 		return TextureRef(resource);
 	}
 
-	TargetRef Renderer_OpenGL::create_target(int width, int height, const TextureFormat* attachments, int attachmentCount)
-	{
-		auto resource = new OpenGL_Target(width, height, attachments, attachmentCount);
+	TargetRef Renderer_OpenGL::create_target(int width, int height,
+											 const TextureFormat *attachments,
+											 int attachmentCount) {
+		auto resource =
+			new OpenGL_Target(width, height, attachments, attachmentCount);
 
-		if (resource->gl_id() <= 0)
-		{
+		if (resource->gl_id() <= 0) {
 			delete resource;
 			return TargetRef();
 		}
@@ -1263,12 +1310,10 @@ namespace Blah
 		return TargetRef(resource);
 	}
 
-	ShaderRef Renderer_OpenGL::create_shader(const ShaderData* data)
-	{
+	ShaderRef Renderer_OpenGL::create_shader(const ShaderData *data) {
 		auto resource = new OpenGL_Shader(data);
 
-		if (resource->gl_id() <= 0)
-		{
+		if (resource->gl_id() <= 0) {
 			delete resource;
 			return ShaderRef();
 		}
@@ -1276,12 +1321,10 @@ namespace Blah
 		return ShaderRef(resource);
 	}
 
-	MeshRef Renderer_OpenGL::create_mesh()
-	{
+	MeshRef Renderer_OpenGL::create_mesh() {
 		auto resource = new OpenGL_Mesh();
 
-		if (resource->gl_id() <= 0)
-		{
+		if (resource->gl_id() <= 0) {
 			delete resource;
 			return MeshRef();
 		}
@@ -1289,23 +1332,19 @@ namespace Blah
 		return MeshRef(resource);
 	}
 
-	void Renderer_OpenGL::render(const DrawCall& pass)
-	{
+	void Renderer_OpenGL::render(const DrawCall &pass) {
 		// Bind the Target
-		if (pass.target == App::backbuffer())
-		{
+		if (pass.target == App::backbuffer()) {
 			RENDERER->gl.BindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
-		else if (pass.target)
-		{
-			auto framebuffer = (OpenGL_Target*)pass.target.get();
+		} else if (pass.target) {
+			auto framebuffer = (OpenGL_Target *) pass.target.get();
 			RENDERER->gl.BindFramebuffer(GL_FRAMEBUFFER, framebuffer->gl_id());
 		}
 
-		auto size = Point(pass.target->width(), pass.target->height());
+		auto size		= Point(pass.target->width(), pass.target->height());
 		auto shader_ref = pass.material->shader();
-		auto shader = (OpenGL_Shader*)shader_ref.get();
-		auto mesh = (OpenGL_Mesh*)pass.mesh.get();
+		auto shader		= (OpenGL_Shader *) shader_ref.get();
+		auto mesh		= (OpenGL_Mesh *) pass.mesh.get();
 
 		// Use the Shader
 		// TODO: I don't love how material values are assigned or set here
@@ -1313,83 +1352,80 @@ namespace Blah
 		{
 			RENDERER->gl.UseProgram(shader->gl_id());
 
-			int texture_slot = 0;
+			int	  texture_slot = 0;
 			GLint texture_ids[64];
-			auto& uniforms = shader->uniforms();
-			auto data = pass.material->data();
+			auto &uniforms = shader->uniforms();
+			auto  data	   = pass.material->data();
 
-			for (int i = 0; i < uniforms.size(); i++)
-			{
-				auto location = shader->uniform_locations[i];
-				auto& uniform = uniforms[i];
+			for (int i = 0; i < uniforms.size(); i++) {
+				auto  location = shader->uniform_locations[i];
+				auto &uniform  = uniforms[i];
 
 				// Sampler 2D's are assigned by updating texture values
 				if (uniform.type == UniformType::Sampler2D)
 					continue;
 
 				// Texture2D
-				if (uniform.type == UniformType::Texture2D)
-				{
-					for (int n = 0; n < uniform.array_length; n++)
-					{
-						auto tex = pass.material->get_texture(texture_slot);
+				if (uniform.type == UniformType::Texture2D) {
+					for (int n = 0; n < uniform.array_length; n++) {
+						auto tex	 = pass.material->get_texture(texture_slot);
 						auto sampler = pass.material->get_sampler(texture_slot);
 
 						RENDERER->gl.ActiveTexture(GL_TEXTURE0 + texture_slot);
 
-						if (!tex)
-						{
+						if (!tex) {
 							RENDERER->gl.BindTexture(GL_TEXTURE_2D, 0);
-						}
-						else
-						{
-							auto gl_tex = ((OpenGL_Texture*)tex.get());
+						} else {
+							auto gl_tex = ((OpenGL_Texture *) tex.get());
 							gl_tex->update_sampler(sampler);
-							RENDERER->gl.BindTexture(GL_TEXTURE_2D, gl_tex->gl_id());
+							RENDERER->gl.BindTexture(GL_TEXTURE_2D,
+													 gl_tex->gl_id());
 						}
 
 						texture_ids[n] = texture_slot;
 						texture_slot++;
 					}
 
-					RENDERER->gl.Uniform1iv(location, (GLint)uniform.array_length, &texture_ids[0]);
+					RENDERER->gl.Uniform1iv(location,
+											(GLint) uniform.array_length,
+											&texture_ids[0]);
 					continue;
 				}
 
 				// Float
-				if (uniform.type == UniformType::Float)
-				{
-					RENDERER->gl.Uniform1fv(location, (GLint)uniform.array_length, data);
+				if (uniform.type == UniformType::Float) {
+					RENDERER->gl.Uniform1fv(location,
+											(GLint) uniform.array_length, data);
 					data += uniform.array_length;
 				}
 				// Float2
-				else if (uniform.type == UniformType::Float2)
-				{
-					RENDERER->gl.Uniform2fv(location, (GLint)uniform.array_length, data);
+				else if (uniform.type == UniformType::Float2) {
+					RENDERER->gl.Uniform2fv(location,
+											(GLint) uniform.array_length, data);
 					data += 2 * uniform.array_length;
 				}
 				// Float3
-				else if (uniform.type == UniformType::Float3)
-				{
-					RENDERER->gl.Uniform3fv(location, (GLint)uniform.array_length, data);
+				else if (uniform.type == UniformType::Float3) {
+					RENDERER->gl.Uniform3fv(location,
+											(GLint) uniform.array_length, data);
 					data += 3 * uniform.array_length;
 				}
 				// Float4
-				else if (uniform.type == UniformType::Float4)
-				{
-					RENDERER->gl.Uniform4fv(location, (GLint)uniform.array_length, data);
+				else if (uniform.type == UniformType::Float4) {
+					RENDERER->gl.Uniform4fv(location,
+											(GLint) uniform.array_length, data);
 					data += 4 * uniform.array_length;
 				}
 				// Matrix3x2
-				else if (uniform.type == UniformType::Mat3x2)
-				{
-					RENDERER->gl.UniformMatrix3x2fv(location, (GLint)uniform.array_length, 0, data);
+				else if (uniform.type == UniformType::Mat3x2) {
+					RENDERER->gl.UniformMatrix3x2fv(
+						location, (GLint) uniform.array_length, 0, data);
 					data += 6 * uniform.array_length;
 				}
 				// Matrix4x4
-				else if (uniform.type == UniformType::Mat4x4)
-				{
-					RENDERER->gl.UniformMatrix4fv(location, (GLint)uniform.array_length, 0, data);
+				else if (uniform.type == UniformType::Mat4x4) {
+					RENDERER->gl.UniformMatrix4fv(
+						location, (GLint) uniform.array_length, 0, data);
 					data += 16 * uniform.array_length;
 				}
 			}
@@ -1397,8 +1433,8 @@ namespace Blah
 
 		// Blend Mode
 		{
-			GLenum colorOp = gl_get_blend_func(pass.blend.color_op);
-			GLenum alphaOp = gl_get_blend_func(pass.blend.alpha_op);
+			GLenum colorOp	= gl_get_blend_func(pass.blend.color_op);
+			GLenum alphaOp	= gl_get_blend_func(pass.blend.alpha_op);
 			GLenum colorSrc = gl_get_blend_factor(pass.blend.color_src);
 			GLenum colorDst = gl_get_blend_factor(pass.blend.color_dst);
 			GLenum alphaSrc = gl_get_blend_factor(pass.blend.alpha_src);
@@ -1406,75 +1442,67 @@ namespace Blah
 
 			RENDERER->gl.Enable(GL_BLEND);
 			RENDERER->gl.BlendEquationSeparate(colorOp, alphaOp);
-			RENDERER->gl.BlendFuncSeparate(colorSrc, colorDst, alphaSrc, alphaDst);
+			RENDERER->gl.BlendFuncSeparate(colorSrc, colorDst, alphaSrc,
+										   alphaDst);
 
 			RENDERER->gl.ColorMask(
-				((int)pass.blend.mask & (int)BlendMask::Red),
-				((int)pass.blend.mask & (int)BlendMask::Green),
-				((int)pass.blend.mask & (int)BlendMask::Blue),
-				((int)pass.blend.mask & (int)BlendMask::Alpha));
+				((int) pass.blend.mask & (int) BlendMask::Red),
+				((int) pass.blend.mask & (int) BlendMask::Green),
+				((int) pass.blend.mask & (int) BlendMask::Blue),
+				((int) pass.blend.mask & (int) BlendMask::Alpha));
 
 			unsigned char r = pass.blend.rgba >> 24;
 			unsigned char g = pass.blend.rgba >> 16;
 			unsigned char b = pass.blend.rgba >> 8;
 			unsigned char a = pass.blend.rgba;
 
-			RENDERER->gl.BlendColor(
-				r / 255.0f,
-				g / 255.0f,
-				b / 255.0f,
-				a / 255.0f);
+			RENDERER->gl.BlendColor(r / 255.0f, g / 255.0f, b / 255.0f,
+									a / 255.0f);
 		}
 
 		// Depth Function
 		{
-			if (pass.depth == Compare::None)
-			{
+			if (pass.depth == Compare::None) {
 				RENDERER->gl.Disable(GL_DEPTH_TEST);
-			}
-			else
-			{
+			} else {
 				RENDERER->gl.Enable(GL_DEPTH_TEST);
 
-				switch (pass.depth)
-				{
-				case Compare::None: break;
-				case Compare::Always:
-					RENDERER->gl.DepthFunc(GL_ALWAYS);
-					break;
-				case Compare::Equal:
-					RENDERER->gl.DepthFunc(GL_EQUAL);
-					break;
-				case Compare::Greater:
-					RENDERER->gl.DepthFunc(GL_GREATER);
-					break;
-				case Compare::GreaterOrEqual:
-					RENDERER->gl.DepthFunc(GL_GEQUAL);
-					break;
-				case Compare::Less:
-					RENDERER->gl.DepthFunc(GL_LESS);
-					break;
-				case Compare::LessOrEqual:
-					RENDERER->gl.DepthFunc(GL_LEQUAL);
-					break;
-				case Compare::Never:
-					RENDERER->gl.DepthFunc(GL_NEVER);
-					break;
-				case Compare::NotEqual:
-					RENDERER->gl.DepthFunc(GL_NOTEQUAL);
-					break;
+				switch (pass.depth) {
+					case Compare::None:
+						break;
+					case Compare::Always:
+						RENDERER->gl.DepthFunc(GL_ALWAYS);
+						break;
+					case Compare::Equal:
+						RENDERER->gl.DepthFunc(GL_EQUAL);
+						break;
+					case Compare::Greater:
+						RENDERER->gl.DepthFunc(GL_GREATER);
+						break;
+					case Compare::GreaterOrEqual:
+						RENDERER->gl.DepthFunc(GL_GEQUAL);
+						break;
+					case Compare::Less:
+						RENDERER->gl.DepthFunc(GL_LESS);
+						break;
+					case Compare::LessOrEqual:
+						RENDERER->gl.DepthFunc(GL_LEQUAL);
+						break;
+					case Compare::Never:
+						RENDERER->gl.DepthFunc(GL_NEVER);
+						break;
+					case Compare::NotEqual:
+						RENDERER->gl.DepthFunc(GL_NOTEQUAL);
+						break;
 				}
 			}
 		}
 
 		// Cull Mode
 		{
-			if (pass.cull == Cull::None)
-			{
+			if (pass.cull == Cull::None) {
 				RENDERER->gl.Disable(GL_CULL_FACE);
-			}
-			else
-			{
+			} else {
 				RENDERER->gl.Enable(GL_CULL_FACE);
 
 				if (pass.cull == Cull::Back)
@@ -1489,21 +1517,19 @@ namespace Blah
 		// Viewport
 		{
 			Rectf viewport = pass.viewport;
-			viewport.y = size.y - viewport.y - viewport.h;
+			viewport.y	   = size.y - viewport.y - viewport.h;
 
-			RENDERER->gl.Viewport((GLint)viewport.x, (GLint)viewport.y, (GLint)viewport.w, (GLint)viewport.h);
+			RENDERER->gl.Viewport((GLint) viewport.x, (GLint) viewport.y,
+								  (GLint) viewport.w, (GLint) viewport.h);
 		}
 
 		// Scissor
 		{
-			if (!pass.has_scissor)
-			{
+			if (!pass.has_scissor) {
 				RENDERER->gl.Disable(GL_SCISSOR_TEST);
-			}
-			else
-			{
+			} else {
 				Rectf scissor = pass.scissor;
-				scissor.y = size.y - scissor.y - scissor.h;
+				scissor.y	  = size.y - scissor.y - scissor.h;
 
 				if (scissor.w < 0)
 					scissor.w = 0;
@@ -1511,7 +1537,8 @@ namespace Blah
 					scissor.h = 0;
 
 				RENDERER->gl.Enable(GL_SCISSOR_TEST);
-				RENDERER->gl.Scissor((GLint)scissor.x, (GLint)scissor.y, (GLint)scissor.w, (GLint)scissor.h);
+				RENDERER->gl.Scissor((GLint) scissor.x, (GLint) scissor.y,
+									 (GLint) scissor.w, (GLint) scissor.h);
 			}
 		}
 
@@ -1520,53 +1547,45 @@ namespace Blah
 			RENDERER->gl.BindVertexArray(mesh->gl_id());
 
 			GLenum index_format = mesh->gl_index_format();
-			int index_size = mesh->gl_index_size();
+			int	   index_size	= mesh->gl_index_size();
 
-			if (pass.instance_count > 0)
-			{
+			if (pass.instance_count > 0) {
 				RENDERER->gl.DrawElementsInstanced(
-					GL_TRIANGLES,
-					(GLint)(pass.index_count),
-					index_format,
-					(void*)(index_size* pass.index_start),
-					(GLint)pass.instance_count);
-			}
-			else
-			{
+					GL_TRIANGLES, (GLint) (pass.index_count), index_format,
+					(void *) (index_size * pass.index_start),
+					(GLint) pass.instance_count);
+			} else {
 				RENDERER->gl.DrawElements(
-					GL_TRIANGLES,
-					(GLint)(pass.index_count),
-					index_format,
-					(void*)(index_size * pass.index_start));
+					GL_TRIANGLES, (GLint) (pass.index_count), index_format,
+					(void *) (index_size * pass.index_start));
 			}
 
 			RENDERER->gl.BindVertexArray(0);
 		}
 	}
 
-	void Renderer_OpenGL::clear_backbuffer(Color color, float depth, u8 stencil, ClearMask mask)
-	{
+	void Renderer_OpenGL::clear_backbuffer(Color color, float depth, u8 stencil,
+										   ClearMask mask) {
 		RENDERER->gl.BindFramebuffer(GL_FRAMEBUFFER, 0);
 		RENDERER->gl.Disable(GL_SCISSOR_TEST);
 
 		int clear = 0;
 
-		if (((int)mask & (int)ClearMask::Color) == (int)ClearMask::Color)
-		{
+		if (((int) mask & (int) ClearMask::Color) == (int) ClearMask::Color) {
 			clear |= GL_COLOR_BUFFER_BIT;
 			RENDERER->gl.ColorMask(true, true, true, true);
-			RENDERER->gl.ClearColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+			RENDERER->gl.ClearColor(color.r / 255.0f, color.g / 255.0f,
+									color.b / 255.0f, color.a / 255.0f);
 		}
-			
-		if (((int)mask & (int)ClearMask::Depth) == (int)ClearMask::Depth)
-		{
+
+		if (((int) mask & (int) ClearMask::Depth) == (int) ClearMask::Depth) {
 			clear |= GL_DEPTH_BUFFER_BIT;
 			if (RENDERER->gl.ClearDepth)
 				RENDERER->gl.ClearDepth(depth);
 		}
 
-		if (((int)mask & (int)ClearMask::Stencil) == (int)ClearMask::Stencil)
-		{
+		if (((int) mask & (int) ClearMask::Stencil) ==
+			(int) ClearMask::Stencil) {
 			clear |= GL_STENCIL_BUFFER_BIT;
 			if (RENDERER->gl.ClearStencil)
 				RENDERER->gl.ClearStencil(stencil);
@@ -1574,21 +1593,17 @@ namespace Blah
 
 		RENDERER->gl.Clear(clear);
 	}
-}
+} // namespace Blah
 
-Blah::Renderer* Blah::Renderer::try_make_opengl()
-{
+Blah::Renderer *Blah::Renderer::try_make_opengl() {
 	return new Blah::Renderer_OpenGL();
 }
 
 #else // BLAH_RENDERER_OPENGL
 
 #include "blah_renderer.h"
-Blah::Renderer* Blah::Renderer::try_make_opengl()
-{
+Blah::Renderer *Blah::Renderer::try_make_opengl() {
 	return nullptr;
 }
 
 #endif
-
-

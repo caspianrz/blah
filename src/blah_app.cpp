@@ -1,9 +1,10 @@
-#include <blah_app.h>
-#include <blah_common.h>
-#include <blah_time.h>
 #include "internal/blah_internal.h"
 #include "internal/blah_platform.h"
 #include "internal/blah_renderer.h"
+
+#include <blah_app.h>
+#include <blah_common.h>
+#include <blah_time.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -12,21 +13,19 @@
 
 using namespace Blah;
 
-namespace
-{
+namespace {
 	// Global App State
-	Config     app_config;
-	bool       app_is_running = false;
-	bool       app_is_exiting = false;
-	bool       app_is_audio_running = false;
-	u64        app_time_last;
-	u64        app_time_accumulator = 0;
-	u32        app_flags = 0;
-	TargetRef  app_backbuffer;
-	Renderer*  app_renderer_api;
+	Config	  app_config;
+	bool	  app_is_running	   = false;
+	bool	  app_is_exiting	   = false;
+	bool	  app_is_audio_running = false;
+	u64		  app_time_last;
+	u64		  app_time_accumulator = 0;
+	u32		  app_flags			   = 0;
+	TargetRef app_backbuffer;
+	Renderer *app_renderer_api;
 
-	void get_drawable_size(int* w, int* h)
-	{
+	void get_drawable_size(int *w, int *h) {
 		// Some renderer implementations might return their own size
 		if (app_renderer_api->get_draw_size(w, h))
 			return;
@@ -35,44 +34,54 @@ namespace
 		Platform::get_draw_size(w, h);
 	}
 
-	void set_audio_system(bool on)
-	{
-		if (on && !app_is_audio_running)
-		{
+	void set_audio_system(bool on) {
+		if (on && !app_is_audio_running) {
 			int more_on_emscripten = 1;
 #ifdef __EMSCRIPTEN__
 			more_on_emscripten = 4;
 #endif
-			app_is_audio_running = Internal::audio_init(app_config.audio_frequency_in_Hz, 1024 * more_on_emscripten);
-		}
-		else if (!on && app_is_audio_running)
-		{
+			app_is_audio_running = Internal::audio_init(
+				app_config.audio_frequency_in_Hz, 1024 * more_on_emscripten);
+		} else if (!on && app_is_audio_running) {
 			Internal::audio_shutdown();
 			app_is_audio_running = false;
 		}
 	}
 
 	// A dummy Target that represents the Back Buffer.
-	// It doesn't contain any data, rather it forwards calls along to the actual BackBuffer.
-	class BackBuffer final : public Target
-	{
-	public:
-		Attachments empty_textures;
-		Attachments& textures() override { BLAH_ASSERT(false, "Backbuffer doesn't have any textures"); return empty_textures; }
-		const Attachments& textures() const override { BLAH_ASSERT(false, "Backbuffer doesn't have any textures"); return empty_textures; }
-		int width() const override { int w, h; get_drawable_size(&w, &h); return w; }
-		int height() const override { int w, h; get_drawable_size(&w, &h); return h; }
-		void clear(Color color, float depth, u8 stencil, ClearMask mask) override
-		{
+	// It doesn't contain any data, rather it forwards calls along to the actual
+	// BackBuffer.
+	class BackBuffer final : public Target {
+	  public:
+		Attachments	 empty_textures;
+		Attachments &textures() override {
+			BLAH_ASSERT(false, "Backbuffer doesn't have any textures");
+			return empty_textures;
+		}
+		const Attachments &textures() const override {
+			BLAH_ASSERT(false, "Backbuffer doesn't have any textures");
+			return empty_textures;
+		}
+		int width() const override {
+			int w, h;
+			get_drawable_size(&w, &h);
+			return w;
+		}
+		int height() const override {
+			int w, h;
+			get_drawable_size(&w, &h);
+			return h;
+		}
+		void clear(Color color, float depth, u8 stencil,
+				   ClearMask mask) override {
 			BLAH_ASSERT_RENDERER();
 			if (app_renderer_api)
 				app_renderer_api->clear_backbuffer(color, depth, stencil, mask);
 		}
 	};
-}
+} // namespace
 
-bool App::run(const Config* c)
-{
+bool App::run(const Config *c) {
 	BLAH_ASSERT(!app_is_running, "The Application is already running");
 
 	// copy config over
@@ -89,12 +98,13 @@ bool App::run(const Config* c)
 	// exit out if setup is wrong
 	BLAH_ASSERT(c != nullptr, "The Application requires a valid Config");
 	BLAH_ASSERT(c->name != nullptr, "The Application Name cannot be null");
-	BLAH_ASSERT(c->width > 0 && c->height > 0, "The Width and Height must be larget than 0");
+	BLAH_ASSERT(c->width > 0 && c->height > 0,
+				"The Width and Height must be larget than 0");
 	BLAH_ASSERT(c->max_updates > 0, "Max Updates must be >= 1");
 	BLAH_ASSERT(c->target_framerate > 0, "Target Framerate must be >= 1");
 
-	if (app_is_running || c == nullptr || c->width <= 0 || c->height <= 0 || c->max_updates <= 0 || c->target_framerate <= 0)
-	{
+	if (app_is_running || c == nullptr || c->width <= 0 || c->height <= 0 ||
+		c->max_updates <= 0 || c->target_framerate <= 0) {
 		Internal::app_shutdown();
 		return false;
 	}
@@ -102,13 +112,12 @@ bool App::run(const Config* c)
 	// default values
 	app_is_running = true;
 	app_is_exiting = false;
-	app_flags = app_config.flags;
+	app_flags	   = app_config.flags;
 	app_backbuffer = TargetRef(new BackBuffer());
 
 	// initialize the system
 	{
-		if (!Platform::init(app_config))
-		{
+		if (!Platform::init(app_config)) {
 			Log::error("Failed to initialize Platform module");
 			Internal::app_shutdown();
 			return false;
@@ -121,16 +130,15 @@ bool App::run(const Config* c)
 
 	// initialize graphics
 	{
-		app_renderer_api = Renderer::try_make_renderer(app_config.renderer_type);
-		if (app_renderer_api == nullptr)
-		{
+		app_renderer_api =
+			Renderer::try_make_renderer(app_config.renderer_type);
+		if (app_renderer_api == nullptr) {
 			Log::error("Renderer module was not found");
 			Internal::app_shutdown();
 			return false;
 		}
 
-		if (!app_renderer_api->init())
-		{
+		if (!app_renderer_api->init()) {
 			Log::error("Failed to initialize Renderer module");
 			Internal::app_shutdown();
 			return false;
@@ -149,7 +157,7 @@ bool App::run(const Config* c)
 	// startup
 	if (app_config.on_startup != nullptr)
 		app_config.on_startup();
-	app_time_last = Platform::ticks();
+	app_time_last		 = Platform::ticks();
 	app_time_accumulator = 0;
 
 	// display window
@@ -170,15 +178,12 @@ bool App::run(const Config* c)
 	return true;
 }
 
-bool App::is_running()
-{
+bool App::is_running() {
 	return app_is_running;
 }
 
-void Internal::app_step()
-{
-	static const auto step = []()
-	{
+void Internal::app_step() {
+	static const auto step = []() {
 		Internal::input_step_state();
 		Platform::update(Input::state);
 		Internal::input_step_bindings();
@@ -190,22 +195,22 @@ void Internal::app_step()
 	bool is_fixed_timestep = App::get_flag(Flags::FixedTimestep);
 
 	// Update in Fixed Timestep
-	if (is_fixed_timestep)
-	{
-		u64 time_target = (u64)((1.0 / app_config.target_framerate) * Time::ticks_per_second);
-		u64 ticks_curr = Platform::ticks();
-		u64 ticks_diff = ticks_curr - app_time_last;
-		app_time_last = ticks_curr;
+	if (is_fixed_timestep) {
+		u64 time_target = (u64) ((1.0 / app_config.target_framerate) *
+								 Time::ticks_per_second);
+		u64 ticks_curr	= Platform::ticks();
+		u64 ticks_diff	= ticks_curr - app_time_last;
+		app_time_last	= ticks_curr;
 		app_time_accumulator += ticks_diff;
 
 		// do not let us run too fast
-		while (app_time_accumulator < time_target)
-		{
-			int milliseconds = (int)(time_target - app_time_accumulator) / (Time::ticks_per_second / 1000);
+		while (app_time_accumulator < time_target) {
+			int milliseconds = (int) (time_target - app_time_accumulator) /
+							   (Time::ticks_per_second / 1000);
 			Platform::sleep(milliseconds);
 
-			ticks_curr = Platform::ticks();
-			ticks_diff = ticks_curr - app_time_last;
+			ticks_curr	  = Platform::ticks();
+			ticks_diff	  = ticks_curr - app_time_last;
 			app_time_last = ticks_curr;
 			app_time_accumulator += ticks_diff;
 		}
@@ -217,14 +222,12 @@ void Internal::app_step()
 			app_time_accumulator = time_maximum;
 
 		// do as many updates as we can
-		while (app_time_accumulator >= time_target)
-		{
+		while (app_time_accumulator >= time_target) {
 			app_time_accumulator -= time_target;
 
 			Time::delta = (1.0f / app_config.target_framerate);
 
-			if (Time::pause_timer > 0)
-			{
+			if (Time::pause_timer > 0) {
 				Time::pause_timer -= Time::delta;
 				if (Time::pause_timer <= -0.0001)
 					Time::delta = -Time::pause_timer;
@@ -241,21 +244,17 @@ void Internal::app_step()
 		}
 	}
 	// Update with Variable Timestep
-	else
-	{
+	else {
 		u64 ticks_curr = Platform::ticks();
 		u64 ticks_diff = ticks_curr - app_time_last;
-		app_time_last = ticks_curr;
+		app_time_last  = ticks_curr;
 		app_time_accumulator += ticks_diff;
 
-		Time::delta = ticks_diff / (float)Time::ticks_per_second;
+		Time::delta = ticks_diff / (float) Time::ticks_per_second;
 
-		if (Time::pause_timer > 0)
-		{
+		if (Time::pause_timer > 0) {
 			Time::pause_timer -= Time::delta;
-		}
-		else
-		{
+		} else {
 			Time::previous_ticks = Time::ticks;
 			Time::ticks += ticks_diff;
 			Time::previous_seconds = Time::seconds;
@@ -279,12 +278,10 @@ void Internal::app_step()
 		Blah::Internal::audio_update();
 }
 
-void Internal::app_shutdown()
-{
+void Internal::app_shutdown() {
 	// shutdown systems
 	Internal::input_shutdown();
-	if (app_renderer_api)
-	{
+	if (app_renderer_api) {
 		app_renderer_api->shutdown();
 		delete app_renderer_api;
 		app_renderer_api = nullptr;
@@ -293,99 +290,86 @@ void Internal::app_shutdown()
 	Platform::shutdown();
 
 	// clear static App state
-	app_config = Config();
-	app_is_running = false;
-	app_is_exiting = false;
-	app_time_last = 0;
+	app_config			 = Config();
+	app_is_running		 = false;
+	app_is_exiting		 = false;
+	app_time_last		 = 0;
 	app_time_accumulator = 0;
-	app_backbuffer = TargetRef();
+	app_backbuffer		 = TargetRef();
 
 	// clear static Time state
-	Time::ticks = 0;
-	Time::seconds = 0;
-	Time::previous_ticks = 0;
+	Time::ticks			   = 0;
+	Time::seconds		   = 0;
+	Time::previous_ticks   = 0;
 	Time::previous_seconds = 0;
-	Time::delta = 0;
+	Time::delta			   = 0;
 }
 
-Renderer* Internal::app_renderer()
-{
+Renderer *Internal::app_renderer() {
 	return app_renderer_api;
 }
 
-void App::exit()
-{
+void App::exit() {
 	BLAH_ASSERT_RUNNING();
 	if (!app_is_exiting && app_is_running)
 		app_is_exiting = true;
 }
 
-const Config& App::config()
-{
+const Config &App::config() {
 	BLAH_ASSERT_RUNNING();
 	return app_config;
 }
 
-const char* App::path()
-{
+const char *App::path() {
 	BLAH_ASSERT_RUNNING();
 	return Platform::app_path();
 }
 
-const char* App::user_path()
-{
+const char *App::user_path() {
 	BLAH_ASSERT_RUNNING();
 	return Platform::user_path();
 }
 
-const char* App::get_title()
-{
+const char *App::get_title() {
 	BLAH_ASSERT_RUNNING();
 	return Platform::get_title();
 }
 
-void App::set_title(const char* title)
-{
+void App::set_title(const char *title) {
 	BLAH_ASSERT_RUNNING();
 	Platform::set_title(title);
 }
 
-Point App::get_position()
-{
+Point App::get_position() {
 	BLAH_ASSERT_RUNNING();
 	Point result;
 	Platform::get_position(&result.x, &result.y);
 	return result;
 }
 
-void App::set_position(Point point)
-{
+void App::set_position(Point point) {
 	BLAH_ASSERT_RUNNING();
 	Platform::set_position(point.x, point.y);
 }
 
-Point App::get_size()
-{
+Point App::get_size() {
 	BLAH_ASSERT_RUNNING();
 	Point result;
 	Platform::get_size(&result.x, &result.y);
 	return result;
 }
 
-void App::set_size(Point point)
-{
+void App::set_size(Point point) {
 	BLAH_ASSERT_RUNNING();
 	Platform::set_size(point.x, point.y);
 }
 
-bool App::focused()
-{
+bool App::focused() {
 	BLAH_ASSERT_RUNNING();
 	return Platform::get_focused();
 }
 
-void App::set_flag(u32 flag, bool enabled)
-{
+void App::set_flag(u32 flag, bool enabled) {
 	BLAH_ASSERT_RUNNING();
 
 	u32 was = app_flags;
@@ -395,8 +379,7 @@ void App::set_flag(u32 flag, bool enabled)
 	else
 		app_flags &= ~flag;
 
-	if (was != app_flags)
-	{
+	if (was != app_flags) {
 		// tell platform & renderer
 		Platform::set_app_flags(app_flags);
 		if (app_renderer_api)
@@ -407,27 +390,23 @@ void App::set_flag(u32 flag, bool enabled)
 	}
 }
 
-bool App::get_flag(u32 flag)
-{
+bool App::get_flag(u32 flag) {
 	BLAH_ASSERT_RUNNING();
 	return ((app_flags & flag) == flag);
 }
 
-const RendererInfo& App::renderer()
-{
+const RendererInfo &App::renderer() {
 	BLAH_ASSERT_RUNNING();
 	BLAH_ASSERT_RENDERER();
 	return app_renderer_api->info;
 }
 
-const TargetRef& App::backbuffer()
-{
+const TargetRef &App::backbuffer() {
 	BLAH_ASSERT_RUNNING();
 	return app_backbuffer;
 }
 
-void System::open_url(const char* url)
-{
+void System::open_url(const char *url) {
 	BLAH_ASSERT_RUNNING();
 	Platform::open_url(url);
 }

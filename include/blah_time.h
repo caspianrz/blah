@@ -1,10 +1,9 @@
 #pragma once
+
 #include <blah_common.h>
 
-namespace Blah
-{
-	namespace Time
-	{
+namespace Blah {
+	namespace Time {
 		// ticks per second (microseconds, in this case)
 		constexpr u64 ticks_per_second = 1000000;
 
@@ -26,14 +25,16 @@ namespace Blah
 		// time the application should pause for
 		extern float pause_timer;
 
-		// uptime, in ticks. polls the Platform for an immediate value, unlike the cached `Time::ticks` value
+		// uptime, in ticks. polls the Platform for an immediate value, unlike
+		// the cached `Time::ticks` value
 		u64 get_ticks();
 
 		// pauses the entire application for the given time
 		void pause_for(float duration);
 
 		// returns true on the given time interval
-		bool on_interval(double time, float delta, float interval, float offset);
+		bool on_interval(double time, float delta, float interval,
+						 float offset);
 
 		// returns true on the given time interval
 		bool on_interval(float delta, float interval, float offset);
@@ -46,20 +47,20 @@ namespace Blah
 
 		// returns true between time intervals
 		bool between_interval(double time, float interval, float offset);
-		
+
 		// returns true between time intervals
 		bool between_interval(float interval, float offset = 0);
-	};
+	}; // namespace Time
 
-	class Stopwatch
-	{
-	public:
+	class Stopwatch {
+	  public:
 		Stopwatch();
 		void reset();
-		u64 microseconds() const;
-		u64 milliseconds() const;
+		u64	 microseconds() const;
+		u64	 milliseconds() const;
 
-	private:
+	  private:
 		u64 start_time;
 	};
-}
+} // namespace Blah
+
