@@ -55,7 +55,9 @@ namespace Blah {
 			int			  y					 = 0;
 			unsigned char alpha				 = 0;
 			Image		  image;
-			UserData	  userdata;
+			// Retain indices so linked cels can use later frame palettes.
+			Vector<u8> indices;
+			UserData   userdata;
 		};
 
 		struct Frame {
@@ -109,16 +111,18 @@ namespace Blah {
 		Aseprite(Stream &stream);
 
 	  private:
-		UserData *m_last_userdata = nullptr;
+		UserData *m_last_userdata	  = nullptr;
+		u8		  m_transparent_index = 0;
 
-		void parse(Stream &stream);
-		void parse_layer(Stream &stream, int frame);
-		void parse_cel(Stream &stream, int frame, size_t maxPosition);
-		void parse_palette(Stream &stream, int frame);
-		void parse_user_data(Stream &stream, int frame);
-		void parse_tag(Stream &stream, int frame);
-		void parse_slice(Stream &stream, int frame);
-		void render_cel(Cel *cel, Frame *frame);
+		void  parse(Stream &stream);
+		void  parse_layer(Stream &stream, int frame);
+		void  parse_cel(Stream &stream, int frame, size_t maxPosition);
+		void  parse_palette(Stream &stream, int frame);
+		void  parse_old_palette(Stream &stream, bool six_bit);
+		Color indexed_color(u8 index, const Layer &layer) const;
+		void  parse_user_data(Stream &stream, int frame);
+		void  parse_tag(Stream &stream, int frame);
+		void  parse_slice(Stream &stream, int frame);
+		void  render_cel(Cel *cel, Frame *frame);
 	};
 } // namespace Blah
-
