@@ -1236,12 +1236,16 @@ namespace Blah {
 		GL_FUNCTIONS
 #undef GL_FUNC
 
+		// WebGL 2 does not support the desktop debug output API.
+#ifndef __EMSCRIPTEN__
 		// bind debug message callback
 		if (gl.DebugMessageCallback != nullptr) {
 			gl.Enable(GL_DEBUG_OUTPUT);
 			gl.Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 			gl.DebugMessageCallback(gl_message_callback, nullptr);
 		}
+
+#endif
 
 		// get opengl info
 		gl.GetIntegerv(0x8CDF, &max_color_attachments);

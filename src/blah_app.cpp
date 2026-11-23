@@ -203,6 +203,8 @@ void Internal::app_step() {
 		app_time_last	= ticks_curr;
 		app_time_accumulator += ticks_diff;
 
+		// Browsers schedule frames; never block their event loop waiting for time.
+#ifndef __EMSCRIPTEN__
 		// do not let us run too fast
 		while (app_time_accumulator < time_target) {
 			int milliseconds = (int) (time_target - app_time_accumulator) /
@@ -214,6 +216,8 @@ void Internal::app_step() {
 			app_time_last = ticks_curr;
 			app_time_accumulator += ticks_diff;
 		}
+
+#endif
 
 		// Do not allow us to fall behind too many updates
 		// (otherwise we'll get spiral of death)
@@ -276,6 +280,16 @@ void Internal::app_step() {
 	// Update audio
 	if (app_is_audio_running)
 		Blah::Internal::audio_update();
+
+#ifdef __EMSCRIPTEN__
+	// App::run cannot resume after emscripten_set_main_loop, so finish here.
+	if (app_is_exiting) {
+		emscripten_cancel_main_loop();
+		if (app_config.on_shutdown != nullptr)
+			app_config.on_shutdown();
+		Internal::app_shutdown();
+	}
+#endif
 }
 
 void Internal::app_shutdown() {

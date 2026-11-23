@@ -60,11 +60,22 @@ if (BLAH_RENDERER_D3D11)
 	set(LIBS ${LIBS} d3d11.lib dxguid.lib D3Dcompiler.lib)
 endif()
 
-# Emscripten can import SDL2 directly
+# Emscripten provides SDL3 as a port. Usage requirements must reach the
+# executable too, since blah itself is only a static library.
 if (EMSCRIPTEN)
 	
-	set_target_properties(blah PROPERTIES COMPILE_FLAGS "-s USE_SDL=3")
-	target_link_libraries(blah "-s USE_SDL=3 -s USE_WEBGL2=1")
+	if (NOT BLAH_RENDERER_OPENGL OR BLAH_RENDERER_D3D11)
+		message(FATAL_ERROR "Emscripten requires the OpenGL renderer and no D3D11 renderer")
+	endif()
+	target_compile_options(blah PUBLIC "-sUSE_SDL=3")
+	target_link_options(blah PUBLIC
+		"-sUSE_SDL=3"
+		"-sMIN_WEBGL_VERSION=2"
+		"-sMAX_WEBGL_VERSION=2"
+		"-sGL_ENABLE_GET_PROC_ADDRESS=1"
+		"-sALLOW_MEMORY_GROWTH=1"
+	)
+	target_compile_definitions(blah PUBLIC BLAH_NO_THREADING)
 
 # Pull SDL3 from its Github repo
 else()

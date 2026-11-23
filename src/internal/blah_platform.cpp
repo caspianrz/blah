@@ -136,6 +136,7 @@ bool Platform::init(const Config &config) {
 #ifdef __EMSCRIPTEN__
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -204,14 +205,20 @@ u64 Platform::ticks() {
 void Platform::update(InputState &state) {
 	// update the mouse every frame
 	{
-		int	  win_x, win_y;
 		float x, y;
+#ifdef __EMSCRIPTEN__
+		// Browsers expose canvas-relative coordinates, not desktop positions.
+		SDL_GetMouseState(&x, &y);
+		state.mouse.on_move(Vec2f(x, y), Vec2f(x, y));
+#else
+		int win_x, win_y;
 
 		SDL_GetWindowPosition(sdl3_window, &win_x, &win_y);
 		SDL_GetGlobalMouseState(&x, &y);
 
 		state.mouse.on_move(Vec2f((float) (x - win_x), (float) (y - win_y)),
 							Vec2f((float) x, (float) y));
+#endif
 	}
 
 	// poll normal events
