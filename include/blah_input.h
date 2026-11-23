@@ -780,6 +780,9 @@ namespace Blah {
 		// returns a string name of the button
 		const char *name_of(Button button);
 
+		// Enables OS text events while a text field has focus.
+		void set_text_input(bool enabled);
+
 		// gets the string contents of the clipboard
 		const String &get_clipboard();
 

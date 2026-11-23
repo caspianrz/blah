@@ -96,6 +96,7 @@ namespace Blah {
 
 		// sets the contents of the clipboard
 		void set_clipboard(const char *text);
+		void set_text_input(bool enabled);
 
 		// gets the contents of the clipboard into the given string
 		const char *get_clipboard();

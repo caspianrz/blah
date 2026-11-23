@@ -340,6 +340,10 @@ const char *Input::name_of(Button button) {
 	return "Unknown";
 }
 
+void Input::set_text_input(bool enabled) {
+	Platform::set_text_input(enabled);
+}
+
 const String &Input::get_clipboard() {
 	return g_clipboard;
 }

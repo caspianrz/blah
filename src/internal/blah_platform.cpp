@@ -545,6 +545,12 @@ void Platform::dir_explore(const char *path) {
 #endif
 }
 
+void Platform::set_text_input(bool enabled) {
+	if (!sdl3_window) return;
+	if (enabled) SDL_StartTextInput(sdl3_window);
+	else SDL_StopTextInput(sdl3_window);
+}
+
 void Platform::set_clipboard(const char *text) {
 	SDL_SetClipboardText(text);
 }
